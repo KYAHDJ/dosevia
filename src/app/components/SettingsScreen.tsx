@@ -1,6 +1,27 @@
-import { ArrowLeft, ChevronRight, Bell, ShoppingCart, Volume2, Vibrate, Download, Info, Star } from 'lucide-react';
+import * as React from 'react';
+import {
+  ArrowLeft,
+  ChevronRight,
+  Bell,
+  ShoppingCart,
+  Volume2,
+  Vibrate,
+  Download,
+  Info,
+  Star,
+} from 'lucide-react';
 import { ReminderSettings } from '@/types/pill-types';
 import { motion } from 'motion/react';
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/app/components/ui/dialog';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
 
 interface SettingsScreenProps {
   settings: ReminderSettings;
@@ -8,15 +29,32 @@ interface SettingsScreenProps {
   onBack: () => void;
 }
 
-export function SettingsScreen({ settings, onSettingsChange, onBack }: SettingsScreenProps) {
-  const updateSetting = <K extends keyof ReminderSettings>(key: K, value: ReminderSettings[K]) => {
+export function SettingsScreen({
+  settings,
+  onSettingsChange,
+  onBack,
+}: SettingsScreenProps) {
+  const updateSetting = <K extends keyof ReminderSettings>(
+    key: K,
+    value: ReminderSettings[K]
+  ) => {
     onSettingsChange({ ...settings, [key]: value });
   };
+
+  /* ──────────────────────────────────────────────
+     Daily Reminder Time Modal State
+  ────────────────────────────────────────────── */
+  const [showTimePicker, setShowTimePicker] = React.useState(false);
+  const [tempTime, setTempTime] = React.useState(settings.dailyReminderTime);
+
+  React.useEffect(() => {
+    setTempTime(settings.dailyReminderTime);
+  }, [settings.dailyReminderTime]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50">
       {/* Header */}
-      <div 
+      <div
         className="border-b sticky top-0 z-10"
         style={{
           background: 'linear-gradient(135deg, #f609bc, #fab86d)',
@@ -36,13 +74,12 @@ export function SettingsScreen({ settings, onSettingsChange, onBack }: SettingsS
 
       {/* Content */}
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6 pb-20">
-        {/* PILL & REMINDERS Section */}
+        {/* PILL & REMINDERS */}
         <section>
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 px-1">
             Pill & Reminders
           </h2>
           <div className="bg-white rounded-xl shadow-sm overflow-hidden divide-y divide-gray-100">
-            {/* Placebo Reminder */}
             <SettingRow
               icon={<Bell className="w-5 h-5" style={{ color: '#f609bc' }} />}
               title="Placebo Reminder"
@@ -54,33 +91,37 @@ export function SettingsScreen({ settings, onSettingsChange, onBack }: SettingsS
               />
             </SettingRow>
 
-            {/* Daily Reminder Time */}
+            {/* ✅ FIXED: Daily Reminder Time */}
             <SettingRow
               icon={<Bell className="w-5 h-5" style={{ color: '#f609bc' }} />}
               title="Daily Reminder Time"
               subtitle={settings.dailyReminderTime}
-              onClick={() => {
-                const newTime = prompt('Enter time (HH:MM format)', settings.dailyReminderTime);
-                if (newTime) updateSetting('dailyReminderTime', newTime);
-              }}
+              onClick={() => setShowTimePicker(true)}
             >
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </SettingRow>
 
-            {/* Pill Buying Reminder */}
             <SettingRow
-              icon={<ShoppingCart className="w-5 h-5" style={{ color: '#fab86d' }} />}
+              icon={
+                <ShoppingCart
+                  className="w-5 h-5"
+                  style={{ color: '#fab86d' }}
+                />
+              }
               title="Pill Buying Reminder"
               subtitle={`${settings.pillBuyingDaysBefore} days before at ${settings.pillBuyingReminderTime}`}
               onClick={() => {
-                const days = prompt('Days before pack ends', String(settings.pillBuyingDaysBefore));
-                if (days) updateSetting('pillBuyingDaysBefore', parseInt(days));
+                const days = prompt(
+                  'Days before pack ends',
+                  String(settings.pillBuyingDaysBefore)
+                );
+                if (days)
+                  updateSetting('pillBuyingDaysBefore', parseInt(days));
               }}
             >
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </SettingRow>
 
-            {/* App Active */}
             <SettingRow
               icon={<Bell className="w-5 h-5" style={{ color: '#f609bc' }} />}
               title="App Active"
@@ -94,39 +135,43 @@ export function SettingsScreen({ settings, onSettingsChange, onBack }: SettingsS
           </div>
         </section>
 
-        {/* NOTIFICATIONS Section */}
+        {/* NOTIFICATIONS */}
         <section>
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 px-1">
             Notifications
           </h2>
           <div className="bg-white rounded-xl shadow-sm overflow-hidden divide-y divide-gray-100">
-            {/* Repeat Interval */}
             <SettingRow
               icon={<Bell className="w-5 h-5" style={{ color: '#f609bc' }} />}
               title="Repeat Interval"
               subtitle={`Every ${settings.repeatInterval} minutes`}
               onClick={() => {
-                const interval = prompt('Repeat interval (minutes)', String(settings.repeatInterval));
-                if (interval) updateSetting('repeatInterval', parseInt(interval));
+                const interval = prompt(
+                  'Repeat interval (minutes)',
+                  String(settings.repeatInterval)
+                );
+                if (interval)
+                  updateSetting('repeatInterval', parseInt(interval));
               }}
             >
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </SettingRow>
 
-            {/* Notification Sound */}
             <SettingRow
               icon={<Volume2 className="w-5 h-5" style={{ color: '#fab86d' }} />}
               title="Notification Sound"
               subtitle={settings.notificationSound}
               onClick={() => {
-                const sound = prompt('Sound name', settings.notificationSound);
+                const sound = prompt(
+                  'Sound name',
+                  settings.notificationSound
+                );
                 if (sound) updateSetting('notificationSound', sound);
               }}
             >
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </SettingRow>
 
-            {/* Play Sound Always */}
             <SettingRow
               icon={<Volume2 className="w-5 h-5" style={{ color: '#fab86d' }} />}
               title="Play Sound Always"
@@ -138,7 +183,6 @@ export function SettingsScreen({ settings, onSettingsChange, onBack }: SettingsS
               />
             </SettingRow>
 
-            {/* Vibrate Always */}
             <SettingRow
               icon={<Vibrate className="w-5 h-5" style={{ color: '#f9f849' }} />}
               title="Vibrate Always"
@@ -149,89 +193,51 @@ export function SettingsScreen({ settings, onSettingsChange, onBack }: SettingsS
                 onChange={(val) => updateSetting('vibrateAlways', val)}
               />
             </SettingRow>
-
-            {/* Notification Title */}
-            <SettingRow
-              icon={<Bell className="w-5 h-5" style={{ color: '#f609bc' }} />}
-              title="Notification Title"
-              subtitle={settings.notificationTitle}
-              onClick={() => {
-                const title = prompt('Notification title', settings.notificationTitle);
-                if (title) updateSetting('notificationTitle', title);
-              }}
-            >
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </SettingRow>
-
-            {/* Notification Subtitle */}
-            <SettingRow
-              icon={<Bell className="w-5 h-5" style={{ color: '#f609bc' }} />}
-              title="Notification Subtitle"
-              subtitle={settings.notificationSubtitle}
-              onClick={() => {
-                const subtitle = prompt('Notification subtitle', settings.notificationSubtitle);
-                if (subtitle) updateSetting('notificationSubtitle', subtitle);
-              }}
-            >
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </SettingRow>
-
-            {/* Notification Icon */}
-            <SettingRow
-              icon={<Bell className="w-5 h-5" style={{ color: '#f609bc' }} />}
-              title="Notification Icon"
-              subtitle={settings.notificationIcon}
-              onClick={() => {
-                const icon = prompt('Icon name', settings.notificationIcon);
-                if (icon) updateSetting('notificationIcon', icon);
-              }}
-            >
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </SettingRow>
-          </div>
-        </section>
-
-        {/* OTHER Section */}
-        <section>
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 px-1">
-            Other
-          </h2>
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden divide-y divide-gray-100">
-            {/* Backup & Restore */}
-            <SettingRow
-              icon={<Download className="w-5 h-5" style={{ color: '#f609bc' }} />}
-              title="Backup & Restore"
-              subtitle="Save and restore your data"
-              onClick={() => alert('Backup & Restore functionality')}
-            >
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </SettingRow>
-
-            {/* About & Help */}
-            <SettingRow
-              icon={<Info className="w-5 h-5" style={{ color: '#fab86d' }} />}
-              title="About & Help"
-              subtitle="App info and support"
-              onClick={() => alert('About & Help')}
-            >
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </SettingRow>
-
-            {/* Rate App */}
-            <SettingRow
-              icon={<Star className="w-5 h-5" style={{ color: '#f9f849' }} />}
-              title="Rate App"
-              subtitle="Share your feedback"
-              onClick={() => alert('Rate App')}
-            >
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </SettingRow>
           </div>
         </section>
       </div>
+
+      {/* ──────────────────────────────────────────────
+         Daily Reminder Time Modal
+      ────────────────────────────────────────────── */}
+      <Dialog open={showTimePicker} onOpenChange={setShowTimePicker}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Daily Reminder Time</DialogTitle>
+          </DialogHeader>
+
+          <Input
+            type="time"
+            value={tempTime}
+            onChange={(e) => setTempTime(e.target.value)}
+            className="mt-4"
+          />
+
+          <DialogFooter className="mt-6">
+            <Button
+              variant="ghost"
+              onClick={() => setShowTimePicker(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                updateSetting('dailyReminderTime', tempTime);
+                setShowTimePicker(false);
+              }}
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
+/* ──────────────────────────────────────────────
+   Shared Components
+────────────────────────────────────────────── */
 
 interface SettingRowProps {
   icon: React.ReactNode;
@@ -241,10 +247,18 @@ interface SettingRowProps {
   children?: React.ReactNode;
 }
 
-function SettingRow({ icon, title, subtitle, onClick, children }: SettingRowProps) {
+function SettingRow({
+  icon,
+  title,
+  subtitle,
+  onClick,
+  children,
+}: SettingRowProps) {
   return (
     <motion.div
-      className={`flex items-center gap-3 px-4 py-4 ${onClick ? 'cursor-pointer active:bg-gray-50' : ''}`}
+      className={`flex items-center gap-3 px-4 py-4 ${
+        onClick ? 'cursor-pointer active:bg-gray-50' : ''
+      }`}
       onClick={onClick}
       whileTap={onClick ? { scale: 0.98 } : {}}
     >
@@ -271,7 +285,9 @@ function Toggle({ enabled, onChange }: ToggleProps) {
         onChange(!enabled);
       }}
       style={{
-        background: enabled ? 'linear-gradient(135deg, #f609bc, #fab86d)' : '#d1d5db',
+        background: enabled
+          ? 'linear-gradient(135deg, #f609bc, #fab86d)'
+          : '#d1d5db',
       }}
       className="relative inline-flex h-7 w-12 items-center rounded-full transition-colors"
     >

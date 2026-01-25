@@ -1,7 +1,25 @@
-import { ChevronDown, Settings, BarChart3, History, Bell, Calendar as CalendarIcon } from 'lucide-react';
+import * as React from 'react';
+import {
+  ChevronDown,
+  Settings,
+  BarChart3,
+  History,
+  Bell,
+  Calendar as CalendarIcon,
+} from 'lucide-react';
 import { DayData, PillType, ReminderSettings } from '@/types/pill-types';
 import { CalendarBlisterPack } from './CalendarBlisterPack';
 import { format } from 'date-fns';
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/app/components/ui/dialog';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
 
 interface HomeScreenProps {
   pillType: PillType;
@@ -26,20 +44,22 @@ export function HomeScreen({
 }: HomeScreenProps) {
   const pillTypes: PillType[] = ['21+7', '24+4', '28-day'];
 
-  const handleStartDateEdit = () => {
-    const dateStr = prompt('Enter start date (YYYY-MM-DD format):', format(startDate, 'yyyy-MM-dd'));
-    if (dateStr) {
-      const newDate = new Date(dateStr);
-      if (!isNaN(newDate.getTime())) {
-        onStartDateChange(newDate);
-      }
-    }
-  };
+  /* ──────────────────────────────────────────────
+     Start Date Modal State (NEW)
+  ────────────────────────────────────────────── */
+  const [showDatePicker, setShowDatePicker] = React.useState(false);
+  const [tempDate, setTempDate] = React.useState(
+    format(startDate, 'yyyy-MM-dd')
+  );
+
+  React.useEffect(() => {
+    setTempDate(format(startDate, 'yyyy-MM-dd'));
+  }, [startDate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50">
       {/* Header */}
-      <div 
+      <div
         className="border-b"
         style={{
           background: 'linear-gradient(135deg, #f609bc, #fab86d)',
@@ -48,10 +68,15 @@ export function HomeScreen({
       >
         <div className="max-w-2xl mx-auto px-4 py-6">
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-white mb-1" style={{ textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)' }}>
+            <h1
+              className="text-3xl font-bold text-white mb-1"
+              style={{ textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)' }}
+            >
               Dosevia
             </h1>
-            <p className="text-sm text-white/90">Professional Pill Reminder</p>
+            <p className="text-sm text-white/90">
+              Professional Pill Reminder
+            </p>
           </div>
 
           {/* Pill Type Selector */}
@@ -62,7 +87,9 @@ export function HomeScreen({
             <div className="relative">
               <select
                 value={pillType}
-                onChange={(e) => onPillTypeChange(e.target.value as PillType)}
+                onChange={(e) =>
+                  onPillTypeChange(e.target.value as PillType)
+                }
                 className="w-full appearance-none bg-white/95 backdrop-blur-sm border-2 border-white/50 rounded-xl px-4 py-3 pr-10 font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-white focus:border-white shadow-lg"
               >
                 {pillTypes.map((type) => (
@@ -77,13 +104,13 @@ export function HomeScreen({
             </div>
           </div>
 
-          {/* Start Date - Now Editable */}
+          {/* Start Date — FIXED */}
           <button
-            onClick={handleStartDateEdit}
+            onClick={() => setShowDatePicker(true)}
             className="w-full bg-white/95 backdrop-blur-sm rounded-xl px-4 py-3 border-2 border-white/50 shadow-lg hover:bg-white transition-colors active:scale-98"
           >
             <div className="flex items-center gap-3">
-              <div 
+              <div
                 className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
                 style={{
                   background: 'linear-gradient(135deg, #f609bc, #fab86d)',
@@ -92,10 +119,15 @@ export function HomeScreen({
                 <CalendarIcon className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 text-left">
-                <p className="text-xs font-medium mb-1" style={{ color: '#d007a0' }}>
+                <p
+                  className="text-xs font-medium mb-1"
+                  style={{ color: '#d007a0' }}
+                >
                   Started (Tap to edit)
                 </p>
-                <p className="font-semibold text-gray-900">{format(startDate, 'MMMM d, yyyy')}</p>
+                <p className="font-semibold text-gray-900">
+                  {format(startDate, 'MMMM d, yyyy')}
+                </p>
               </div>
               <ChevronDown className="w-4 h-4 text-gray-400 transform -rotate-90" />
             </div>
@@ -105,20 +137,24 @@ export function HomeScreen({
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto py-8">
-        {/* Calendar Blister Pack */}
-        <CalendarBlisterPack pillType={pillType} days={days} onStatusChange={onStatusChange} />
+        <CalendarBlisterPack
+          pillType={pillType}
+          days={days}
+          onStatusChange={onStatusChange}
+        />
 
         {/* Reminder Status */}
         <div className="mt-8 px-4">
-          <div 
+          <div
             className="rounded-xl shadow-lg p-5 border-2"
             style={{
-              background: 'linear-gradient(135deg, rgba(246, 9, 188, 0.1), rgba(250, 184, 109, 0.1))',
+              background:
+                'linear-gradient(135deg, rgba(246, 9, 188, 0.1), rgba(250, 184, 109, 0.1))',
               borderColor: 'rgba(246, 9, 188, 0.2)',
             }}
           >
             <div className="flex items-center gap-3">
-              <div 
+              <div
                 className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
                 style={{
                   background: 'linear-gradient(135deg, #f609bc, #fab86d)',
@@ -127,7 +163,10 @@ export function HomeScreen({
                 <Bell className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium" style={{ color: '#d007a0' }}>
+                <p
+                  className="text-sm font-medium"
+                  style={{ color: '#d007a0' }}
+                >
                   Next Reminder
                 </p>
                 <p className="font-semibold text-gray-900">
@@ -146,7 +185,7 @@ export function HomeScreen({
             onClick={() => onNavigate('settings')}
             className="bg-white rounded-xl shadow-lg p-4 flex flex-col items-center gap-2 border-2 border-pink-100 hover:border-pink-300 active:scale-95 transition-all"
           >
-            <div 
+            <div
               className="w-10 h-10 rounded-full flex items-center justify-center"
               style={{
                 background: 'linear-gradient(135deg, #f609bc, #d007a0)',
@@ -154,14 +193,16 @@ export function HomeScreen({
             >
               <Settings className="w-5 h-5 text-white" />
             </div>
-            <span className="text-sm font-medium text-gray-700">Settings</span>
+            <span className="text-sm font-medium text-gray-700">
+              Settings
+            </span>
           </button>
 
           <button
             onClick={() => onNavigate('history')}
             className="bg-white rounded-xl shadow-lg p-4 flex flex-col items-center gap-2 border-2 border-orange-100 hover:border-orange-300 active:scale-95 transition-all"
           >
-            <div 
+            <div
               className="w-10 h-10 rounded-full flex items-center justify-center"
               style={{
                 background: 'linear-gradient(135deg, #fab86d, #f59e0b)',
@@ -169,14 +210,16 @@ export function HomeScreen({
             >
               <History className="w-5 h-5 text-white" />
             </div>
-            <span className="text-sm font-medium text-gray-700">History</span>
+            <span className="text-sm font-medium text-gray-700">
+              History
+            </span>
           </button>
 
           <button
             onClick={() => onNavigate('stats')}
             className="bg-white rounded-xl shadow-lg p-4 flex flex-col items-center gap-2 border-2 border-yellow-100 hover:border-yellow-300 active:scale-95 transition-all"
           >
-            <div 
+            <div
               className="w-10 h-10 rounded-full flex items-center justify-center"
               style={{
                 background: 'linear-gradient(135deg, #f9f849, #eab308)',
@@ -184,10 +227,47 @@ export function HomeScreen({
             >
               <BarChart3 className="w-5 h-5 text-white" />
             </div>
-            <span className="text-sm font-medium text-gray-700">Stats</span>
+            <span className="text-sm font-medium text-gray-700">
+              Stats
+            </span>
           </button>
         </div>
       </div>
+
+      {/* ──────────────────────────────────────────────
+         Start Date Picker Modal (NEW)
+      ────────────────────────────────────────────── */}
+      <Dialog open={showDatePicker} onOpenChange={setShowDatePicker}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Start Date</DialogTitle>
+          </DialogHeader>
+
+          <Input
+            type="date"
+            value={tempDate}
+            onChange={(e) => setTempDate(e.target.value)}
+            className="mt-4"
+          />
+
+          <DialogFooter className="mt-6">
+            <Button
+              variant="ghost"
+              onClick={() => setShowDatePicker(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                onStartDateChange(new Date(tempDate));
+                setShowDatePicker(false);
+              }}
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
