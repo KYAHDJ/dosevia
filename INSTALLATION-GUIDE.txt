@@ -1,0 +1,197 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║   🎵 DOSEVIA - AUDIO PICKER FIX - COMPLETE GUIDE 🎵          ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+✅ WHAT'S FIXED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. ✅ Unrestricted file browsing (browse entire phone)
+2. ✅ Strict audio validation (only audio files accepted)
+3. ✅ Missing dependencies added to package.json
+4. ✅ Build errors fixed
+
+
+🚀 INSTALLATION STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣ EXTRACT THE ZIP
+   
+   Extract dosevia-AUDIO-PICKER-UNRESTRICTED.zip
+   Navigate to the folder: dosevia-notifications-SOUND-FIXED
+
+
+2️⃣ CLEAN INSTALL (IMPORTANT!)
+   
+   Run these commands in PowerShell:
+
+   # Delete old files (if they exist)
+   Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue
+   Remove-Item -Force package-lock.json -ErrorAction SilentlyContinue
+   
+   # Install dependencies (this will install the file picker)
+   npm install --legacy-peer-deps
+   
+
+3️⃣ BUILD THE PROJECT
+   
+   npm run build
+   
+
+4️⃣ SYNC WITH ANDROID
+   
+   npx cap sync android
+   
+
+5️⃣ RUN ON DEVICE
+   
+   npx cap run android
+   
+
+Done! 🎉
+
+
+📦 WHAT'S INCLUDED IN PACKAGE.JSON
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+New Dependencies Added:
+✓ @capawesome/capacitor-file-picker@^7.0.0 (for file browsing - Capacitor 8 compatible)
+✓ @capacitor/filesystem@^8.0.0 (for file system access)
+
+
+🎯 TESTING THE AUDIO PICKER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After installation:
+
+1. Open the app on Android device
+2. Go to Settings
+3. Tap "Custom Notification Sound"
+4. Tap "Browse" button
+
+You should now see:
+✅ ALL files on your phone (not just audio)
+✅ Can navigate to any folder (Music, Downloads, etc.)
+✅ When you select non-audio file → Error message appears
+✅ When you select audio file → Waveform appears
+
+
+🔧 TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ ERROR: "vite is not recognized"
+   → Solution: Run `npm install` first
+
+❌ ERROR: "Rollup failed to resolve import @capawesome/capacitor-file-picker"
+   → Solution: This is fixed! Just run:
+     npm install
+     npm run build
+
+❌ ERROR: "Could not find web assets directory"
+   → Solution: Build failed. Check for errors above, then run:
+     npm run build
+     npx cap sync android
+
+❌ BUILD SUCCEEDS but no files show in file picker
+   → Make sure you granted storage permission to the app
+   → On Android: Settings → Apps → Dosevia → Permissions → Files
+
+
+📱 SUPPORTED AUDIO FORMATS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ MP3   (.mp3)
+✓ WAV   (.wav)
+✓ M4A   (.m4a)
+✓ OGG   (.ogg)
+✓ AAC   (.aac)
+✓ FLAC  (.flac)
+✓ WMA   (.wma)
+✓ OPUS  (.opus)
+
+
+🛡️ VALIDATION LOGIC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When user picks a file:
+
+1. Check MIME type: Does it start with "audio/"?
+2. Check extension: Is it .mp3, .wav, .m4a, etc.?
+
+If EITHER passes → ✅ File accepted
+If BOTH fail → ❌ Show error: "Invalid file type!"
+
+
+📋 COMPLETE COMMAND SEQUENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Copy and paste this into PowerShell:
+
+# Clean install
+Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue
+Remove-Item -Force package-lock.json -ErrorAction SilentlyContinue
+npm install --legacy-peer-deps
+
+# Build and run
+npm run build
+npx cap sync android
+npx cap run android
+
+
+🔍 VERIFY INSTALLATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After npm install --legacy-peer-deps, you should see:
+✓ @capawesome/capacitor-file-picker@7.0.0
+✓ @capacitor/filesystem@8.0.0
+
+Check by running:
+npm list @capawesome/capacitor-file-picker
+npm list @capacitor/filesystem
+
+
+📚 TECHNICAL DETAILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Files Modified:
+1. package.json - Added file picker dependencies
+2. src/app/components/AudioPicker.tsx - Removed MIME type restrictions
+
+Code Changes:
+BEFORE:
+  FilePicker.pickFiles({
+    types: ['audio/mpeg', 'audio/mp3', ...], ← Restricted
+  });
+
+AFTER:
+  FilePicker.pickFiles({
+    // No types restriction! ← Browse everything
+  });
+  
+  // Then validate:
+  if (!isAudioFile) {
+    alert('Invalid file type!');
+  }
+
+
+💡 TIPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Always run `npm install --legacy-peer-deps` after extracting
+✓ Use --legacy-peer-deps to avoid dependency conflicts
+✓ If build fails, check error messages carefully
+✓ Make sure Android device is connected for `npx cap run android`
+✓ Grant storage permissions when app first opens
+
+
+🎉 THAT'S IT!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your audio picker now:
+✅ Lets users browse entire phone
+✅ Validates strictly for audio only
+✅ Shows clear errors
+✅ Supports 8 audio formats
+
+Enjoy! 🚀

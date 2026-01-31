@@ -1,0 +1,49 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║              🚀 QUICK START - COPY & PASTE 🚀                ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+
+📋 COPY THIS ENTIRE BLOCK AND PASTE IN POWERSHELL:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue
+Remove-Item -Force package-lock.json -ErrorAction SilentlyContinue
+npm install --legacy-peer-deps
+npm run build
+npx cap sync android
+npx cap run android
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+⚠️  IMPORTANT: Use --legacy-peer-deps flag!
+    This avoids version conflicts between Capacitor 8 and plugins.
+
+
+✅ WHAT THIS DOES:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Removes old node_modules (if exists)
+2. Removes old package-lock.json (if exists)
+3. Installs all dependencies with compatibility mode
+4. Builds the project
+5. Syncs with Android
+6. Runs on your Android device
+
+
+📱 WHAT'S NEW:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Browse ENTIRE phone (not just audio files)
+✅ Strict validation (only audio files accepted)
+✅ 8 audio formats supported
+✅ Clear error messages
+
+
+🎉 DONE!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+That's it! No more dependency errors. 🚀

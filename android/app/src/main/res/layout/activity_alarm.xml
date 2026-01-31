@@ -1,0 +1,74 @@
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF1744"
+    android:padding="24dp">
+
+    <!-- Pulsing pill icon -->
+    <ImageView
+        android:id="@+id/pillIcon"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="80dp"
+        android:src="@mipmap/ic_launcher"
+        android:contentDescription="Medication Icon"/>
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/alarmTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/pillIcon"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="32dp"
+        android:text="💊 MEDICATION TIME!"
+        android:textSize="32sp"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:gravity="center"/>
+
+    <!-- Message -->
+    <TextView
+        android:id="@+id/alarmMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/alarmTitle"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:text="It's time to take your pill"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:gravity="center"/>
+
+    <!-- Instruction -->
+    <TextView
+        android:id="@+id/instruction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/alarmMessage"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="48dp"
+        android:text="Tap the button below to confirm\nand stop the alarm"
+        android:textSize="16sp"
+        android:textColor="#FFCDD2"
+        android:gravity="center"
+        android:lineSpacingMultiplier="1.2"/>
+
+    <!-- Take Button -->
+    <Button
+        android:id="@+id/takeButton"
+        android:layout_width="200dp"
+        android:layout_height="70dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="60dp"
+        android:text="TAKE PILL"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#FF1744"
+        android:background="@android:color/white"
+        android:elevation="8dp"/>
+
+</RelativeLayout>
