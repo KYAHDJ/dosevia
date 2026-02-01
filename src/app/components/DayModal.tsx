@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { DayData, PillStatus } from '@/types/pill-types';
 import { format, startOfDay, isAfter } from 'date-fns';
+import { Portal } from './Portal';
 
 interface DayModalProps {
   isOpen: boolean;
@@ -27,27 +28,68 @@ export function DayModal({ isOpen, dayData, onClose, onStatusChange }: DayModalP
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
+    <Portal>
+      <AnimatePresence>
+        {isOpen && (
+          <div 
+            className="fixed inset-0 z-[99999]" 
+            style={{ 
+              position: 'fixed !important' as any,
+              top: '0 !important',
+              left: '0 !important', 
+              right: '0 !important',
+              bottom: '0 !important',
+              width: '100vw',
+              height: '100vh',
+              margin: 0,
+              padding: 0
+            }}
+          >
+          {/* Backdrop - Full screen overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/50 z-40"
-            style={{ backdropFilter: 'blur(4px)' }}
+            className="absolute inset-0 bg-black/50"
+            style={{ 
+              backdropFilter: 'blur(4px)',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              width: '100%',
+              height: '100%'
+            }}
           />
 
-          {/* Modal */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[85%] max-w-md"
+          <div 
+            className="absolute inset-0 flex items-center justify-center"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1,
+              pointerEvents: 'none'
+            }}
           >
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="w-[85%] max-w-md"
+              style={{
+                pointerEvents: 'auto'
+              }}
+            >
             <div
               className="bg-white rounded-2xl shadow-2xl overflow-hidden"
               style={{
@@ -158,8 +200,10 @@ export function DayModal({ isOpen, dayData, onClose, onStatusChange }: DayModalP
               </div>
             </div>
           </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+          </div>
+        </div>
+        )}
+      </AnimatePresence>
+    </Portal>
   );
 }

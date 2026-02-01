@@ -41,13 +41,13 @@ export function CalendarBlisterPack({ pillType, days, onStatusChange }: Calendar
 
   const handleStatusChange = (day: number, status: PillStatus) => {
     if (status === 'taken') {
-      // Start the multi-stage animation
+      // Start the multi-stage animation - ALWAYS FULLSCREEN
       const dayData = days.find(d => d.day === day);
       if (dayData) {
         // Stage 1: Puncture the blister
         setPuncturingDay(day);
         
-        // Stage 2: Show fullscreen animation
+        // Stage 2: Show fullscreen animation (ALWAYS, regardless of pill count)
         setTimeout(() => {
           setPuncturingDay(null);
           setAnimatingDay(dayData);

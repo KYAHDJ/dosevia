@@ -8,6 +8,7 @@ const NOTIFICATION_IDS = {
   MAIN_ALARM: 1,
   ESCALATION_BASE: 1000,
   MISSED_PILL_WARNING: 2000,
+  PILL_BUYING_REMINDER: 3000,
 };
 
 /**
@@ -274,6 +275,7 @@ export async function cancelAllAlarms() {
       { id: NOTIFICATION_IDS.EARLY_1MIN },
       { id: NOTIFICATION_IDS.MAIN_ALARM },
       { id: NOTIFICATION_IDS.MISSED_PILL_WARNING },
+      { id: NOTIFICATION_IDS.PILL_BUYING_REMINDER },
     ];
 
     // Add all escalating alarm IDs
@@ -290,6 +292,7 @@ export async function cancelAllAlarms() {
 
 /**
  * Schedule missed pill warning with custom icon and sound
+ * CRITICAL: Continuous vibration for missed pills
  */
 export async function scheduleMissedPillWarning(
   hour: number,
@@ -316,7 +319,7 @@ export async function scheduleMissedPillWarning(
         notifications: [
           {
             id: NOTIFICATION_IDS.MISSED_PILL_WARNING,
-            title: '⚠️ DANGER: Missed Pill Warning',
+            title: '🚨 URGENT: Missed Pill Warning',
             body: 'You haven\'t taken today\'s pill yet! Take it now to avoid missing your dose.',
             channelId: ALARM_CHANNEL_ID,
             schedule: {
@@ -327,16 +330,17 @@ export async function scheduleMissedPillWarning(
             smallIcon: iconResource,
             actionTypeId: '',
             autoCancel: false,
-            ongoing: false,
+            ongoing: true, // Makes it persistent
             extra: {
               type: 'missed_pill_warning',
               playSound: true,
+              vibrate: true,
             },
           },
         ],
       });
       
-      console.log(`⚠️ Scheduled missed pill warning at ${warningTime.toLocaleTimeString()}`);
+      console.log(`⚠️ Scheduled CRITICAL missed pill warning at ${warningTime.toLocaleTimeString()}`);
     } else {
       console.log('⚠️ Warning time already passed, not scheduling');
     }
@@ -350,4 +354,61 @@ export async function scheduleMissedPillWarning(
  */
 export function checkAndMarkMissedPills(days: any[], setDays: any) {
   // Implementation in App.tsx
+}
+
+/**
+ * Schedule pill buying reminder
+ */
+export async function schedulePillBuyingReminder(
+  daysBeforeRunOut: number,
+  hour: number,
+  minute: number,
+  lastPillDate: Date,
+  notificationIcon: string = '🛒',
+  soundFileName?: string
+) {
+  try {
+    const reminderDate = new Date(lastPillDate);
+    reminderDate.setDate(reminderDate.getDate() - daysBeforeRunOut);
+    reminderDate.setHours(hour, minute, 0, 0);
+
+    const now = new Date();
+    
+    // Only schedule if the reminder date is in the future
+    if (reminderDate <= now) {
+      console.log('📅 Pill buying reminder date is in the past, not scheduling');
+      return;
+    }
+
+    const iconResource = getIconResource(notificationIcon);
+    const soundResource = getSoundResource(soundFileName);
+
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: NOTIFICATION_IDS.PILL_BUYING_REMINDER,
+          title: '🛒 Time to Buy More Pills',
+          body: `You have ${daysBeforeRunOut} days of pills left. Order your next pack now!`,
+          channelId: ALARM_CHANNEL_ID,
+          schedule: {
+            at: reminderDate,
+            allowWhileIdle: true,
+          },
+          sound: soundResource,
+          smallIcon: iconResource,
+          actionTypeId: '',
+          autoCancel: false,
+          ongoing: false,
+          extra: {
+            type: 'pill_buying_reminder',
+            playSound: true,
+          },
+        },
+      ],
+    });
+
+    console.log(`🛒 Scheduled pill buying reminder for ${reminderDate.toLocaleDateString()} at ${reminderDate.toLocaleTimeString()}`);
+  } catch (error) {
+    console.error('❌ Error scheduling pill buying reminder:', error);
+  }
 }

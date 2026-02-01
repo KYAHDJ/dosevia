@@ -17,6 +17,7 @@ import {
   scheduleDailyAlarm, 
   cancelAllAlarms,
   scheduleMissedPillWarning,
+  schedulePillBuyingReminder,
 } from '@/app/lib/notifications';
 
 type Screen = 'home' | 'settings' | 'history' | 'stats';
@@ -359,9 +360,17 @@ function App() {
     });
   };
 
-  /* SCHEDULE ALARM AND MISSED PILL WARNING */
+  /* SCHEDULE ALARM AND MISSED PILL WARNING - Respects App Active setting */
   useEffect(() => {
-    if (!settings.appActive || days.length === 0) {
+    // If app is NOT active, cancel all alarms and return
+    if (!settings.appActive) {
+      console.log('🔕 App Active is OFF - canceling all alarms and notifications');
+      cancelAllAlarms();
+      return;
+    }
+
+    // Only schedule if app is active and we have days
+    if (days.length === 0) {
       return;
     }
 
@@ -381,17 +390,57 @@ function App() {
       todayPill?.status === 'taken'
     );
 
-    // Schedule missed pill warning
+    // Schedule missed pill warning (only if placebo reminder is on OR it's an active pill)
     if (todayPill && todayPill.status === 'not_taken') {
-      scheduleMissedPillWarning(
-        hour, 
-        minute,
-        settings.notificationIcon,     // 🎨 Icon emoji
-        settings.soundFileUri          // 🔊 Sound file URI
-      );
-      console.log('⚠️ Scheduled missed pill warning');
+      // Only remind for placebo pills if placebo reminder is enabled
+      if (!todayPill.isPlacebo || settings.placeboReminder) {
+        scheduleMissedPillWarning(
+          hour, 
+          minute,
+          settings.notificationIcon,     // 🎨 Icon emoji
+          settings.soundFileUri          // 🔊 Sound file URI
+        );
+        console.log('⚠️ Scheduled missed pill warning');
+      }
     }
-  }, [settings.appActive, settings.dailyReminderTime, settings.notificationIcon, settings.soundFileUri, days]);
+  }, [
+    settings.appActive, 
+    settings.dailyReminderTime, 
+    settings.notificationIcon, 
+    settings.soundFileUri, 
+    settings.vibrateAlways,
+    settings.placeboReminder,
+    days
+  ]);
+
+  /* SCHEDULE PILL BUYING REMINDER - Respects App Active setting */
+  useEffect(() => {
+    // If app is NOT active, don't schedule
+    if (!settings.appActive || days.length === 0) {
+      return;
+    }
+
+    // Get the last pill date
+    const lastPill = days[days.length - 1];
+    if (!lastPill) return;
+
+    const [hour, minute] = parseTime(settings.pillBuyingReminderTime);
+
+    schedulePillBuyingReminder(
+      settings.pillBuyingDaysBefore,
+      hour,
+      minute,
+      lastPill.date,
+      '🛒', // Shopping cart icon
+      settings.soundFileUri
+    );
+  }, [
+    settings.appActive,
+    settings.pillBuyingDaysBefore,
+    settings.pillBuyingReminderTime,
+    settings.soundFileUri,
+    days
+  ]);
 
   if (isLoading) {
     return (

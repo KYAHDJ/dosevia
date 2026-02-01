@@ -18,8 +18,11 @@ export function CalendarPillBubble({ dayData, onClick, isCurrentDay, shouldPunct
   // Determine if pill is physically present
   const isPillPresent = status !== 'taken';
   
-  // Get pill color based on type
+  // Get pill color based on type and status
   const getPillColor = () => {
+    if (status === 'missed') {
+      return '#ef4444'; // RED for missed pills - CRITICAL
+    }
     if (isLowDose) {
       return '#fbbf24'; // Amber/yellow for low-dose estrogen
     }
@@ -144,7 +147,8 @@ export function CalendarPillBubble({ dayData, onClick, isCurrentDay, shouldPunct
                   status === 'missed'
                     ? {
                         duration: 0.5,
-                        repeat: 2,
+                        repeat: Infinity, // CONTINUOUS shaking for missed pills
+                        repeatType: 'loop',
                       }
                     : {}
                 }
@@ -155,17 +159,25 @@ export function CalendarPillBubble({ dayData, onClick, isCurrentDay, shouldPunct
                 <div
                   className="relative w-11 h-11 rounded-full flex items-center justify-center"
                   style={{
-                    background: isLowDose
+                    background: status === 'missed'
+                      ? 'linear-gradient(135deg, #fee2e2 0%, #fca5a5 50%, #ef4444 100%)' // RED gradient for MISSED
+                      : isLowDose
                       ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fbbf24 100%)' // Amber gradient for low-dose
                       : isPlacebo
                       ? 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 50%, #9ca3af 100%)' // Gray for placebo
                       : 'linear-gradient(135deg, #ffffff 0%, #f3f4f6 50%, #e5e7eb 100%)', // White for active
-                    boxShadow: `
-                      0 3px 8px ${isLowDose ? 'rgba(251, 191, 36, 0.4)' : isPlacebo ? 'rgba(156, 163, 175, 0.4)' : 'rgba(0, 0, 0, 0.15)'},
-                      inset 0 1px 0 rgba(255, 255, 255, 0.9),
-                      inset 0 -1px 2px rgba(0, 0, 0, 0.1)
-                    `,
-                    border: status === 'missed' ? `2px solid ${pillColor}` : 'none',
+                    boxShadow: status === 'missed'
+                      ? `
+                        0 3px 12px rgba(239, 68, 68, 0.6),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                        inset 0 -1px 2px rgba(239, 68, 68, 0.2)
+                      `
+                      : `
+                        0 3px 8px ${isLowDose ? 'rgba(251, 191, 36, 0.4)' : isPlacebo ? 'rgba(156, 163, 175, 0.4)' : 'rgba(0, 0, 0, 0.15)'},
+                        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                        inset 0 -1px 2px rgba(0, 0, 0, 0.1)
+                      `,
+                    border: status === 'missed' ? '2px solid #dc2626' : 'none',
                     transform: 'translateZ(8px)',
                   }}
                 >

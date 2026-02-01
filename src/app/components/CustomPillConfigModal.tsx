@@ -43,7 +43,7 @@ export function CustomPillConfigModal({ isOpen, onClose, onSave }: CustomPillCon
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[95vw] max-w-[500px] sm:max-w-lg bg-gradient-to-br from-pink-50/95 via-white to-orange-50/95 backdrop-blur-sm border-2 border-pink-200/50 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[90vw] max-w-[500px] bg-gradient-to-br from-pink-50/95 via-white to-orange-50/95 backdrop-blur-sm border-2 border-pink-200/50 max-h-[85vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <div 
@@ -64,10 +64,10 @@ export function CustomPillConfigModal({ isOpen, onClose, onSave }: CustomPillCon
         <div className="space-y-3 sm:space-y-4 py-2 sm:py-4">
           {/* Active Pills */}
           <div className="bg-white rounded-xl p-3 sm:p-4 border-2 border-pink-200">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate">Active Pills</h3>
-                <p className="text-xs text-gray-600 truncate">Hormone-containing pills</p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex-1 min-w-[140px]">
+                <h3 className="text-sm sm:text-base font-semibold text-gray-900">Active Pills</h3>
+                <p className="text-xs text-gray-600">Hormone-containing pills</p>
               </div>
               <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                 <button
@@ -97,10 +97,10 @@ export function CustomPillConfigModal({ isOpen, onClose, onSave }: CustomPillCon
 
           {/* Placebo Pills */}
           <div className="bg-white rounded-xl p-3 sm:p-4 border-2 border-pink-200">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate">Placebo Pills</h3>
-                <p className="text-xs text-gray-600 truncate">No hormones (period week)</p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex-1 min-w-[140px]">
+                <h3 className="text-sm sm:text-base font-semibold text-gray-900">Placebo Pills</h3>
+                <p className="text-xs text-gray-600">No hormones (period week)</p>
               </div>
               <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                 <button
@@ -124,10 +124,10 @@ export function CustomPillConfigModal({ isOpen, onClose, onSave }: CustomPillCon
 
           {/* Low-Dose Pills */}
           <div className="bg-white rounded-xl p-3 sm:p-4 border-2 border-pink-200">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate">Low-Dose Pills</h3>
-                <p className="text-xs text-gray-600 truncate">Low hormone (instead of placebo)</p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex-1 min-w-[140px]">
+                <h3 className="text-sm sm:text-base font-semibold text-gray-900">Low-Dose Pills</h3>
+                <p className="text-xs text-gray-600">Low hormone (instead of placebo)</p>
               </div>
               <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                 <button

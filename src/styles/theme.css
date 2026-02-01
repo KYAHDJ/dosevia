@@ -178,4 +178,14 @@
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
+
+  /* Force modals and overlays to always be on top and escape overflow constraints */
+  [class*="fixed"][class*="z-[99999]"],
+  [class*="fixed"][class*="z-[9999]"] {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+  }
 }

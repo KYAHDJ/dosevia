@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { Portal } from './Portal';
 
 interface PillTakenAnimationProps {
   isPlacebo: boolean;
@@ -23,17 +24,32 @@ export function PillTakenAnimation({ isPlacebo, onComplete }: PillTakenAnimation
   }, []);
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center"
-        style={{
-          background: 'radial-gradient(circle, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9))',
-          backdropFilter: 'blur(8px)',
-        }}
-      >
+    <Portal>
+      <AnimatePresence>
+        <div 
+          className="fixed inset-0 z-[99999]" 
+          style={{ 
+            position: 'fixed !important' as any,
+            top: '0 !important',
+            left: '0 !important',
+            right: '0 !important',
+            bottom: '0 !important',
+            width: '100vw',
+            height: '100vh',
+            margin: 0,
+            padding: 0
+          }}
+        >
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="absolute inset-0 flex items-center justify-center"
+          style={{
+            background: 'radial-gradient(circle, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9))',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
         {/* Pill animation container */}
         <div className="relative" style={{ perspective: '1000px' }}>
           {/* Stage 1: Puncture effect */}
@@ -219,7 +235,9 @@ export function PillTakenAnimation({ isPlacebo, onComplete }: PillTakenAnimation
             </motion.button>
           </motion.div>
         )}
-      </motion.div>
-    </AnimatePresence>
+        </motion.div>
+        </div>
+      </AnimatePresence>
+    </Portal>
   );
 }

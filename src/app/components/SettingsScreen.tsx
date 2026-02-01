@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronRight, Bell, ShoppingCart, Volume2, Vibrate, Download, Info, Star, Clock } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Bell, ShoppingCart, Volume2, Vibrate, Info, Star, Clock } from 'lucide-react';
 import { ReminderSettings } from '@/types/pill-types';
 import { motion } from 'motion/react';
 import { useState } from 'react';
@@ -253,19 +253,13 @@ export function SettingsScreen({ settings, onSettingsChange, onBack }: SettingsS
           <div className="bg-white rounded-xl shadow-sm overflow-hidden divide-y divide-gray-100">
 
             <SettingRow
-              icon={<Download className="w-5 h-5" style={{ color: '#f609bc' }} />}
-              title="Backup & Restore"
-              subtitle="Save and restore your data"
-              onClick={() => alert('Backup & Restore functionality')}
-            >
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </SettingRow>
-
-            <SettingRow
               icon={<Info className="w-5 h-5" style={{ color: '#fab86d' }} />}
               title="About & Help"
               subtitle="App info and support"
-              onClick={() => alert('About & Help')}
+              onClick={() => {
+                // Intentionally empty - no functionality yet
+                console.log('About & Help - Not implemented yet');
+              }}
             >
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </SettingRow>
@@ -274,7 +268,10 @@ export function SettingsScreen({ settings, onSettingsChange, onBack }: SettingsS
               icon={<Star className="w-5 h-5" style={{ color: '#f9f849' }} />}
               title="Rate App"
               subtitle="Share your feedback"
-              onClick={() => alert('Rate App')}
+              onClick={() => {
+                // Intentionally empty - no functionality yet
+                console.log('Rate App - Not implemented yet');
+              }}
             >
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </SettingRow>
