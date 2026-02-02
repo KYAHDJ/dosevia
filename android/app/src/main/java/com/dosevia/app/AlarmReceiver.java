@@ -46,7 +46,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             wakeLock.release();
         }
         
-        // Start alarm service for continuous sound
+        // Start alarm service
         Intent serviceIntent = new Intent(context, AlarmService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(serviceIntent);
@@ -57,15 +57,15 @@ public class AlarmReceiver extends BroadcastReceiver {
         // Show main notification
         showAlarmNotification(context);
         
-        // Get repeat count
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        int repeatCount = prefs.getInt(KEY_REPEAT_COUNT, 0);
+        // Get repeat count (reuse prefs variable from earlier)
+        SharedPreferences repeatPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        int repeatCount = repeatPrefs.getInt(KEY_REPEAT_COUNT, 0);
         
         // Schedule next repeating alarm (30 seconds, then decreasing to 10 seconds)
         scheduleNextAlarm(context, repeatCount);
         
         // Increment repeat count
-        prefs.edit().putInt(KEY_REPEAT_COUNT, repeatCount + 1).apply();
+        repeatPrefs.edit().putInt(KEY_REPEAT_COUNT, repeatCount + 1).apply();
     }
     
     private void showEarlyNotification(Context context) {

@@ -196,8 +196,8 @@ public class MainActivity extends BridgeActivity {
                 
                 NotificationChannel channel = new NotificationChannel(channelId, name, importance);
                 channel.setDescription(description);
-                channel.enableVibration(true);
-                channel.setVibrationPattern(new long[]{0, 1000, 500, 1000});
+                // Remove default vibration - let user control in Android settings
+                channel.enableVibration(false);
                 channel.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
                 channel.setBypassDnd(true);
                 

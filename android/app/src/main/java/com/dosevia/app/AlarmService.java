@@ -78,25 +78,9 @@ public class AlarmService extends Service {
             Log.d(TAG, "🔊 Volume set to max: " + maxVolume);
         }
         
-        // The notification channel's sound will play automatically
-        // We just need to handle vibration here
-        vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-        if (vibrator != null && vibrator.hasVibrator()) {
-            long[] pattern = {
-                0,      // Start immediately
-                1000,   // Vibrate 1 second
-                500     // Pause 0.5 seconds
-            };
-            
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator.vibrate(VibrationEffect.createWaveform(pattern, 0)); // 0 = repeat
-            } else {
-                vibrator.vibrate(pattern, 0); // 0 = repeat
-            }
-            Log.d(TAG, "📳 Vibration started");
-        }
-        
-        Log.d(TAG, "✅ AlarmService fully initialized - notification sound playing via channel");
+        // Vibration is controlled by the notification channel settings
+        // Users can enable/disable vibration in Android Settings → Notifications → Alarms
+        Log.d(TAG, "✅ AlarmService fully initialized - sound/vibration controlled by Android settings");
         
         return START_STICKY; // Keep running
     }
