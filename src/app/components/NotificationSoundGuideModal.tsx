@@ -47,121 +47,150 @@ export function NotificationSoundGuideModal({ isOpen, onClose }: NotificationSou
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[95vw] sm:w-full sm:max-w-lg bg-gradient-to-br from-pink-50/95 via-white to-orange-50/95 backdrop-blur-sm border-2 border-pink-200/50">
+      <DialogContent className="w-[90vw] max-w-[500px] bg-gradient-to-br from-pink-50/95 via-white to-orange-50/95 backdrop-blur-sm border-2 border-pink-200/50 max-h-[85vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <div 
-              className="w-12 h-12 rounded-full flex items-center justify-center"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0"
               style={{
                 background: 'linear-gradient(135deg, #f609bc, #fab86d)',
               }}
             >
-              <Volume2 className="w-6 h-6 text-white" />
+              <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-pink-600 to-orange-500 bg-clip-text text-transparent">
-              Change Notification Sound
+            <DialogTitle className="text-base sm:text-xl font-semibold bg-gradient-to-r from-pink-600 to-orange-500 bg-clip-text text-transparent leading-tight">
+              Alarm Settings
             </DialogTitle>
           </div>
+          <p className="text-xs sm:text-sm text-gray-600">Configure sound and vibration for your medication alarms</p>
         </DialogHeader>
 
-        <div className="py-4 space-y-6">
-          {/* Explanation */}
-          <div className="bg-white rounded-xl p-4 border-2 border-pink-200 space-y-3">
-            <p className="text-sm text-gray-700 leading-relaxed">
-              To change your medication reminder sound, we'll open your app settings where you can access notifications:
+        <div className="py-2 sm:py-4 space-y-3 sm:space-y-4">
+          {/* Important Notice */}
+          <div className="bg-yellow-50 rounded-xl p-3 sm:p-4 border-2 border-yellow-300">
+            <p className="text-xs sm:text-sm font-semibold text-yellow-900 mb-1 sm:mb-2">
+              ⚠️ Sound & Vibration Settings
             </p>
-            
-            <div className="space-y-2 ml-2">
-              <div className="flex items-start gap-2">
-                <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span className="text-sm text-gray-600">Access notification settings</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span className="text-sm text-gray-600">Change alarm sound</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span className="text-sm text-gray-600">Adjust volume and vibration</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span className="text-sm text-gray-600">Customize all notification settings</span>
-              </div>
-            </div>
+            <p className="text-xs text-yellow-800 leading-relaxed">
+              Alarm sound AND vibration are both controlled together in your phone's settings. 
+              You cannot change them separately within this app.
+            </p>
           </div>
 
           {/* Step-by-step guide */}
-          <div className="bg-gradient-to-r from-pink-50 to-orange-50 rounded-xl p-4 border-2 border-pink-200">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              What You'll Do:
+          <div className="bg-gradient-to-r from-pink-50 to-orange-50 rounded-xl p-3 sm:p-5 border-2 border-pink-300">
+            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+              <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+              Follow These Steps:
             </h3>
             
-            <div className="space-y-3">
-              <div className="flex gap-3">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex gap-2 sm:gap-3 items-start">
                 <div 
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                  className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold text-white flex-shrink-0"
                   style={{ background: 'linear-gradient(135deg, #f609bc, #fab86d)' }}
                 >
                   1
                 </div>
-                <p className="text-sm text-gray-700">
-                  Click the button below to open app settings
-                </p>
+                <div className="flex-1">
+                  <p className="text-sm sm:text-base font-semibold text-gray-900 leading-tight">
+                    Tap "Open Settings"
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1">
+                    Opens Dosevia's settings page
+                  </p>
+                </div>
               </div>
               
-              <div className="flex gap-3">
+              <div className="flex gap-2 sm:gap-3 items-start">
                 <div 
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                  className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold text-white flex-shrink-0"
                   style={{ background: 'linear-gradient(135deg, #f609bc, #fab86d)' }}
                 >
                   2
                 </div>
-                <p className="text-sm text-gray-700">
-                  Tap on <span className="font-semibold">"Notifications"</span>
-                </p>
+                <div className="flex-1">
+                  <p className="text-sm sm:text-base font-semibold text-gray-900 leading-tight">
+                    Tap "Notifications"
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1">
+                    Find and tap the Notifications option
+                  </p>
+                </div>
               </div>
               
-              <div className="flex gap-3">
+              <div className="flex gap-2 sm:gap-3 items-start">
                 <div 
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                  className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold text-white flex-shrink-0"
                   style={{ background: 'linear-gradient(135deg, #f609bc, #fab86d)' }}
                 >
                   3
                 </div>
-                <p className="text-sm text-gray-700">
-                  Tap <span className="font-semibold">"Alarms"</span> channel
-                </p>
+                <div className="flex-1">
+                  <p className="text-sm sm:text-base font-semibold text-gray-900 leading-tight">
+                    Tap "Alarms" channel
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1">
+                    Look for the "Alarms" notification channel
+                  </p>
+                </div>
               </div>
               
-              <div className="flex gap-3">
+              <div className="flex gap-2 sm:gap-3 items-start">
                 <div 
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                  className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold text-white flex-shrink-0"
                   style={{ background: 'linear-gradient(135deg, #f609bc, #fab86d)' }}
                 >
                   4
                 </div>
-                <p className="text-sm text-gray-700">
-                  Change the sound, then return to this app to close this guide
-                </p>
+                <div className="flex-1">
+                  <p className="text-sm sm:text-base font-semibold text-gray-900 leading-tight">
+                    Change Sound & Vibration
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1">
+                    Tap "Sound" to choose alarm sound<br/>
+                    Toggle "Vibrate" to enable/disable vibration
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-2 sm:gap-3 items-start">
+                <div 
+                  className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold text-white flex-shrink-0"
+                  style={{ background: 'linear-gradient(135deg, #f609bc, #fab86d)' }}
+                >
+                  5
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm sm:text-base font-semibold text-gray-900 leading-tight">
+                    Done! Come back
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1">
+                    Return to Dosevia after making changes
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Important note */}
-          <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-            <p className="text-xs text-blue-800">
-              💡 <span className="font-semibold">Pro Tip:</span> This is the standard Android way to change notification sounds. 
-              Any sound you select will be used for all medication reminders!
+          {/* Helpful tips */}
+          <div className="bg-blue-50 rounded-lg p-3 sm:p-4 border-2 border-blue-200">
+            <p className="text-xs sm:text-sm font-semibold text-blue-900 mb-1 sm:mb-2">
+              💡 Helpful Tips:
             </p>
+            <ul className="text-xs text-blue-800 space-y-1 sm:space-y-1.5 ml-3 sm:ml-4">
+              <li className="list-disc">Choose a LOUD alarm sound so you don't miss your medication</li>
+              <li className="list-disc">Test the sound before confirming your choice</li>
+              <li className="list-disc">Enable vibration if you want physical alerts</li>
+              <li className="list-disc">These settings apply to ALL medication reminders</li>
+            </ul>
           </div>
         </div>
 
-        <DialogFooter className="gap-2 flex-col sm:flex-row">
+        <DialogFooter className="gap-2 flex-col sm:flex-row pt-2">
           <Button
             onClick={handleOpenSettings}
-            className="w-full sm:w-auto text-white hover:opacity-90 order-1"
+            className="w-full sm:w-auto text-white hover:opacity-90 order-1 text-sm sm:text-base h-9 sm:h-10"
             style={{
               background: 'linear-gradient(135deg, #f609bc, #fab86d)',
             }}
@@ -173,7 +202,7 @@ export function NotificationSoundGuideModal({ isOpen, onClose }: NotificationSou
           <Button
             variant="outline"
             onClick={onClose}
-            className="w-full sm:w-auto border-gray-300 hover:bg-gray-50 order-2"
+            className="w-full sm:w-auto border-gray-300 hover:bg-gray-50 order-2 text-sm sm:text-base h-9 sm:h-10"
           >
             Close Guide
           </Button>

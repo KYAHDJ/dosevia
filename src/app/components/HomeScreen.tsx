@@ -1,4 +1,4 @@
-import { ChevronDown, Settings, BarChart3, History, Bell, Calendar as CalendarIcon, Pill } from 'lucide-react';
+import { ChevronDown, Settings, BarChart3, History, Bell, Calendar as CalendarIcon, Pill, FileText } from 'lucide-react';
 import { DayData, PillType, ReminderSettings } from '@/types/pill-types';
 import { SwipeableBlisterPacks } from './SwipeableBlisterPacks';
 import { PillTypeModal } from './PillTypeModal';
@@ -178,8 +178,8 @@ export function HomeScreen({
             </div>
           </div>
 
-          {/* Quick Actions - RESPONSIVE GRID */}
-          <div className="mt-3 sm:mt-4 md:mt-6 px-2 sm:px-0 grid grid-cols-3 gap-2 sm:gap-3 pb-4 sm:pb-6">
+          {/* Quick Actions - RESPONSIVE 4-COLUMN GRID */}
+          <div className="mt-3 sm:mt-4 md:mt-6 px-2 sm:px-0 grid grid-cols-4 gap-2 sm:gap-3 pb-4 sm:pb-6">
             <button
               onClick={() => onNavigate('settings')}
               className="bg-white rounded-xl shadow-lg p-2.5 sm:p-3 md:p-4 flex flex-col items-center justify-center gap-1.5 sm:gap-2 hover:shadow-xl transition-shadow active:scale-95"
@@ -202,6 +202,14 @@ export function HomeScreen({
             >
               <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: '#f609bc' }} />
               <span className="text-xs sm:text-sm font-medium text-gray-700">Stats</span>
+            </button>
+
+            <button
+              onClick={() => onNavigate('notes')}
+              className="bg-white rounded-xl shadow-lg p-2.5 sm:p-3 md:p-4 flex flex-col items-center justify-center gap-1.5 sm:gap-2 hover:shadow-xl transition-shadow active:scale-95"
+            >
+              <FileText className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: '#f609bc' }} />
+              <span className="text-xs sm:text-sm font-medium text-gray-700">Notes</span>
             </button>
           </div>
         </div>

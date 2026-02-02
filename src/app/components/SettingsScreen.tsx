@@ -197,22 +197,11 @@ export function SettingsScreen({ settings, onSettingsChange, onBack }: SettingsS
 
             <SettingRow
               icon={<Volume2 className="w-5 h-5" style={{ color: '#fab86d' }} />}
-              title="Notification Sound"
-              subtitle="Medical Alarm (Tap to configure)"
+              title="Sound & Vibration"
+              subtitle="Configure in Android settings (Tap for guide)"
               onClick={() => setShowSoundGuide(true)}
             >
               <ChevronRight className="w-5 h-5 text-gray-400" />
-            </SettingRow>
-
-            <SettingRow
-              icon={<Vibrate className="w-5 h-5" style={{ color: '#f9f849' }} />}
-              title="Vibrate Always"
-              subtitle="Vibrate with notification"
-            >
-              <Toggle
-                enabled={settings.vibrateAlways}
-                onChange={(val) => updateSetting('vibrateAlways', val)}
-              />
             </SettingRow>
 
             <SettingRow

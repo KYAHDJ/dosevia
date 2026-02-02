@@ -4,11 +4,13 @@ import {
   PillType,
   PillStatus,
   ReminderSettings,
+  Note,
 } from '@/types/pill-types';
 import { HomeScreen } from './components/HomeScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { HistoryScreen } from './components/HistoryScreen';
 import { StatsScreen } from './components/StatsScreen';
+import { NotesScreen } from './components/NotesScreen';
 import { addDays, isSameDay, isAfter, isBefore, startOfDay } from 'date-fns';
 import { Preferences } from '@capacitor/preferences';
 import { App as CapacitorApp } from '@capacitor/app';
@@ -20,7 +22,7 @@ import {
   schedulePillBuyingReminder,
 } from '@/app/lib/notifications';
 
-type Screen = 'home' | 'settings' | 'history' | 'stats';
+type Screen = 'home' | 'settings' | 'history' | 'stats' | 'notes';
 
 const STORAGE_KEY = 'dosevia-app-state';
 const STORAGE_VERSION = '2.0';
@@ -116,6 +118,8 @@ function App() {
     notificationIcon: '💊',
   });
 
+  const [notes, setNotes] = useState<Note[]>([]);
+
   /* INIT NOTIFICATIONS */
   useEffect(() => {
     initNotifications();
@@ -195,6 +199,17 @@ function App() {
         if (saved.settings) {
           console.log('✅ Restoring settings');
           setSettings(saved.settings);
+        }
+
+        if (saved.notes && Array.isArray(saved.notes)) {
+          const restoredNotes = saved.notes.map((note: any) => ({
+            ...note,
+            date: new Date(note.date),
+            createdAt: new Date(note.createdAt),
+            updatedAt: new Date(note.updatedAt),
+          }));
+          console.log('✅ Restored', restoredNotes.length, 'notes');
+          setNotes(restoredNotes);
         }
 
         console.log('✅ Load complete');
@@ -284,6 +299,12 @@ function App() {
             date: day.date.toISOString(),
           })),
           settings,
+          notes: notes.map(note => ({
+            ...note,
+            date: note.date.toISOString(),
+            createdAt: note.createdAt.toISOString(),
+            updatedAt: note.updatedAt.toISOString(),
+          })),
           lastSaved: new Date().toISOString(),
         };
 
@@ -299,7 +320,7 @@ function App() {
     };
 
     saveState();
-  }, [days, pillType, startDate, settings, isLoading]);
+  }, [days, pillType, startDate, settings, notes, isLoading]);
 
   /* HANDLE PILL STATUS CHANGE */
   const handleStatusChange = (day: number, status: PillStatus) => {
@@ -494,6 +515,32 @@ function App() {
           <StatsScreen
             days={days}
             startDate={startDate}
+            onBack={() => setCurrentScreen('home')}
+          />
+        )}
+
+        {currentScreen === 'notes' && (
+          <NotesScreen
+            notes={notes}
+            onAddNote={(note) => {
+              const newNote: Note = {
+                ...note,
+                id: `note_${Date.now()}_${Math.random()}`,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              };
+              setNotes([...notes, newNote]);
+            }}
+            onEditNote={(id, content) => {
+              setNotes(notes.map(note => 
+                note.id === id 
+                  ? { ...note, content, updatedAt: new Date() }
+                  : note
+              ));
+            }}
+            onDeleteNote={(id) => {
+              setNotes(notes.filter(note => note.id !== id));
+            }}
             onBack={() => setCurrentScreen('home')}
           />
         )}

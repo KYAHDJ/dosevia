@@ -20,6 +20,15 @@ export type PillType =
 
 export type PillStatus = 'not_taken' | 'taken' | 'missed';
 
+export interface Note {
+  id: string;
+  date: Date;
+  time: string; // Time in HH:mm format
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface DayData {
   day: number;
   status: PillStatus;
@@ -27,6 +36,7 @@ export interface DayData {
   date: Date;
   takenAt?: string; // ISO timestamp when pill was taken
   isLowDose?: boolean; // For pills like Seasonique that have low-dose estrogen instead of placebo
+  note?: string; // Optional note when taking the pill
 }
 
 export interface ReminderSettings {
