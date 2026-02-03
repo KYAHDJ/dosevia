@@ -207,27 +207,41 @@ export async function scheduleDailyAlarm(
     });
     console.log('🔔 Scheduled main alarm at', mainTrigger.toLocaleTimeString());
 
-    // 4. Escalating repeating alarms
-    // Pattern: 30s, 30s, 25s, 25s, 20s, 20s, 15s, 15s, then 10s forever
-    const intervals = [
-      30, 30, // First two at 30 seconds
-      25, 25, // Next two at 25 seconds  
-      20, 20, // Next two at 20 seconds
-      15, 15, // Next two at 15 seconds
-      ...Array(12).fill(10), // Rest at 10 seconds (total 20 alarms)
+    // 4. Escalating then AGGRESSIVE repeating alarms
+    // Pattern: Start gentle, then become relentless
+    // Phase 1: Escalate from 30s → 10s
+    // Phase 2: Continue AGGRESSIVELY at 10s intervals
+    
+    const escalationPattern = [
+      30, 30,      // Start: 2 alarms at 30 seconds
+      25, 25,      // Getting closer: 2 alarms at 25 seconds
+      20, 20,      // More urgent: 2 alarms at 20 seconds
+      15, 15,      // Very urgent: 2 alarms at 15 seconds
+      10, 10, 10,  // Critical: 3 alarms at 10 seconds
+    ];
+    
+    // After escalation, continue AGGRESSIVELY at 10 seconds
+    const AGGRESSIVE_INTERVAL = 10;
+    const AGGRESSIVE_COUNT = 90; // 90 more alarms at 10s = 15 minutes
+    
+    const allIntervals = [
+      ...escalationPattern,
+      ...Array(AGGRESSIVE_COUNT).fill(AGGRESSIVE_INTERVAL)
     ];
 
     let cumulativeDelay = 0;
-    for (let i = 0; i < intervals.length; i++) {
-      const interval = intervals[i];
+    for (let i = 0; i < allIntervals.length; i++) {
+      const interval = allIntervals[i];
       cumulativeDelay += interval * 1000; // Convert to milliseconds
 
       const escalationTrigger = new Date(mainTrigger.getTime() + cumulativeDelay);
 
       if (escalationTrigger > now) {
+        const isAggressivePhase = i >= escalationPattern.length;
+        
         notifications.push({
           id: NOTIFICATION_IDS.ESCALATION_BASE + i,
-          title: `🚨 URGENT: ${title}`,
+          title: isAggressivePhase ? `🚨 CRITICAL: ${title}` : `🔔 URGENT: ${title}`,
           body: `⏰ Reminder #${i + 1}: ${body}`,
           channelId: ALARM_CHANNEL_ID,
           schedule: {
@@ -237,20 +251,23 @@ export async function scheduleDailyAlarm(
           sound: soundResource,
           smallIcon: iconResource,
           actionTypeId: '',
-          ongoing: false,
+          ongoing: isAggressivePhase, // Persistent in aggressive phase
           autoCancel: false,
           extra: {
-            type: 'escalating_alarm',
+            type: isAggressivePhase ? 'aggressive_alarm' : 'escalating_alarm',
             attemptNumber: i + 1,
             intervalSeconds: interval,
             playSound: true,
+            phase: isAggressivePhase ? 'aggressive' : 'escalating',
           },
         });
       }
     }
     
     const escalatingCount = notifications.filter(n => n.extra?.type === 'escalating_alarm').length;
-    console.log(`📢 Scheduled ${escalatingCount} escalating alarms (30s → 10s pattern)`);
+    const aggressiveCount = notifications.filter(n => n.extra?.type === 'aggressive_alarm').length;
+    console.log(`📢 Scheduled ${escalatingCount} escalating alarms (30s → 10s)`);
+    console.log(`🚨 Scheduled ${aggressiveCount} AGGRESSIVE alarms (every 10s)`);
 
     // Schedule all notifications at once
     if (notifications.length > 0) {
@@ -278,8 +295,8 @@ export async function cancelAllAlarms() {
       { id: NOTIFICATION_IDS.PILL_BUYING_REMINDER },
     ];
 
-    // Add all escalating alarm IDs
-    for (let i = 0; i < 20; i++) {
+    // Add all escalating alarm IDs (100 alarms for continuous reminders)
+    for (let i = 0; i < 100; i++) {
       notificationIds.push({ id: NOTIFICATION_IDS.ESCALATION_BASE + i });
     }
 
@@ -357,25 +374,25 @@ export function checkAndMarkMissedPills(days: any[], setDays: any) {
 }
 
 /**
- * Schedule pill buying reminder
+ * Schedule pill buying reminder with repeating notifications
+ * Repeats 5 times at 20-second intervals
  */
 export async function schedulePillBuyingReminder(
-  daysBeforeRunOut: number,
+  reminderDate: Date,
   hour: number,
   minute: number,
-  lastPillDate: Date,
   notificationIcon: string = '🛒',
   soundFileName?: string
 ) {
   try {
-    const reminderDate = new Date(lastPillDate);
-    reminderDate.setDate(reminderDate.getDate() - daysBeforeRunOut);
-    reminderDate.setHours(hour, minute, 0, 0);
+    // Set the exact time on the reminder date
+    const scheduledTime = new Date(reminderDate);
+    scheduledTime.setHours(hour, minute, 0, 0);
 
     const now = new Date();
     
     // Only schedule if the reminder date is in the future
-    if (reminderDate <= now) {
+    if (scheduledTime <= now) {
       console.log('📅 Pill buying reminder date is in the past, not scheduling');
       return;
     }
@@ -383,32 +400,80 @@ export async function schedulePillBuyingReminder(
     const iconResource = getIconResource(notificationIcon);
     const soundResource = getSoundResource(soundFileName);
 
-    await LocalNotifications.schedule({
-      notifications: [
-        {
-          id: NOTIFICATION_IDS.PILL_BUYING_REMINDER,
-          title: '🛒 Time to Buy More Pills',
-          body: `You have ${daysBeforeRunOut} days of pills left. Order your next pack now!`,
-          channelId: ALARM_CHANNEL_ID,
-          schedule: {
-            at: reminderDate,
-            allowWhileIdle: true,
-          },
-          sound: soundResource,
-          smallIcon: iconResource,
-          actionTypeId: '',
-          autoCancel: false,
-          ongoing: false,
-          extra: {
-            type: 'pill_buying_reminder',
-            playSound: true,
-          },
-        },
-      ],
+    const notifications = [];
+
+    // Main reminder
+    notifications.push({
+      id: NOTIFICATION_IDS.PILL_BUYING_REMINDER,
+      title: '🛒 Time to Buy More Pills',
+      body: 'You need to purchase your next pack of pills. Don\'t forget!',
+      channelId: ALARM_CHANNEL_ID,
+      schedule: {
+        at: scheduledTime,
+        allowWhileIdle: true,
+      },
+      sound: soundResource,
+      smallIcon: iconResource,
+      actionTypeId: '',
+      autoCancel: false,
+      ongoing: false,
+      extra: {
+        type: 'pill_buying_reminder',
+        playSound: true,
+        attemptNumber: 1,
+      },
     });
 
-    console.log(`🛒 Scheduled pill buying reminder for ${reminderDate.toLocaleDateString()} at ${reminderDate.toLocaleTimeString()}`);
+    // Repeating reminders - 5 times at 20-second intervals
+    for (let i = 1; i <= 5; i++) {
+      const repeatTime = new Date(scheduledTime.getTime() + (i * 20 * 1000));
+      
+      notifications.push({
+        id: NOTIFICATION_IDS.PILL_BUYING_REMINDER + i,
+        title: `🛒 REMINDER #${i + 1}: Buy Pills`,
+        body: 'Please purchase your next pack of pills soon!',
+        channelId: ALARM_CHANNEL_ID,
+        schedule: {
+          at: repeatTime,
+          allowWhileIdle: true,
+        },
+        sound: soundResource,
+        smallIcon: iconResource,
+        actionTypeId: '',
+        autoCancel: false,
+        ongoing: false,
+        extra: {
+          type: 'pill_buying_reminder_repeat',
+          playSound: true,
+          attemptNumber: i + 1,
+        },
+      });
+    }
+
+    await LocalNotifications.schedule({ notifications });
+
+    console.log(`🛒 Scheduled pill buying reminder for ${scheduledTime.toLocaleDateString()} at ${scheduledTime.toLocaleTimeString()}`);
+    console.log(`📢 Scheduled 5 repeat reminders (every 20 seconds)`);
   } catch (error) {
     console.error('❌ Error scheduling pill buying reminder:', error);
+  }
+}
+
+/**
+ * Cancel pill buying reminder and all its repeats
+ */
+export async function cancelPillBuyingReminder() {
+  try {
+    const notificationIds = [{ id: NOTIFICATION_IDS.PILL_BUYING_REMINDER }];
+    
+    // Add all repeat notification IDs
+    for (let i = 1; i <= 5; i++) {
+      notificationIds.push({ id: NOTIFICATION_IDS.PILL_BUYING_REMINDER + i });
+    }
+
+    await LocalNotifications.cancel({ notifications: notificationIds });
+    console.log('🔕 Canceled pill buying reminder and all repeats');
+  } catch (error) {
+    console.error('❌ Error canceling pill buying reminder:', error);
   }
 }

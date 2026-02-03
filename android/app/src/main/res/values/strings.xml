@@ -4,4 +4,7 @@
     <string name="title_activity_main">Dosevia</string>
     <string name="package_name">com.dosevia.app</string>
     <string name="custom_url_scheme">com.dosevia.app</string>
+    <string name="widget_small_description">Shows pills taken today</string>
+    <string name="widget_medium_description">Display pill statistics</string>
+    <string name="widget_large_description">Calendar view of your pill pack</string>
 </resources>

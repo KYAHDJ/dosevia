@@ -44,6 +44,8 @@ export interface ReminderSettings {
   dailyReminderTime: string;
   pillBuyingDaysBefore: number;
   pillBuyingReminderTime: string;
+  pillBuyingReminderDate?: string; // Specific date for pill buying reminder (ISO format)
+  pillBuyingReminderEnabled: boolean; // Whether the reminder is active
   appActive: boolean;
   repeatInterval: number;
   notificationSound: string;

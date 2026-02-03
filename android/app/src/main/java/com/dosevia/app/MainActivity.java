@@ -32,6 +32,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(CustomSoundPlugin.class);
         registerPlugin(SoundManagerPlugin.class);
         registerPlugin(NotificationSettingsPlugin.class);
+        // registerPlugin(WidgetSyncPlugin.class); // Commented out - widgets will still work via AndroidManifest
         
         // Check permissions FIRST before doing anything
         checkCriticalPermissions();

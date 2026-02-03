@@ -55,6 +55,43 @@
             android:name=".AlarmDismissReceiver"
             android:enabled="true"
             android:exported="false" />
+        
+        <!-- Home Screen Widgets -->
+        <receiver
+            android:name=".DoseviaSmallWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.dosevia.app.UPDATE_WIDGETS" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_small" />
+        </receiver>
+        
+        <receiver
+            android:name=".DoseviaMediumWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.dosevia.app.UPDATE_WIDGETS" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_medium" />
+        </receiver>
+        
+        <receiver
+            android:name=".DoseviaLargeWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.dosevia.app.UPDATE_WIDGETS" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_large" />
+        </receiver>
     </application>
 
 

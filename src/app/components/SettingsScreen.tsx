@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronRight, Bell, ShoppingCart, Volume2, Vibrate, Info, Star, Clock } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Bell, Volume2, Vibrate, Info, Star, Clock, Smartphone } from 'lucide-react';
 import { ReminderSettings } from '@/types/pill-types';
 import { motion } from 'motion/react';
 import { useState } from 'react';
@@ -7,6 +7,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { IconPicker } from './IconPicker';
 import { NotificationSoundGuideModal } from './NotificationSoundGuideModal';
+import { WidgetsScreen } from './WidgetsScreen';
 
 interface SettingsScreenProps {
   settings: ReminderSettings;
@@ -28,6 +29,7 @@ export function SettingsScreen({ settings, onSettingsChange, onBack }: SettingsS
   const [tempValue, setTempValue] = useState<string>('');
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [showSoundGuide, setShowSoundGuide] = useState(false);
+  const [showWidgets, setShowWidgets] = useState(false);
   const updateSetting = <K extends keyof ReminderSettings>(key: K, value: ReminderSettings[K]) => {
     onSettingsChange({ ...settings, [key]: value });
   };
@@ -166,15 +168,6 @@ export function SettingsScreen({ settings, onSettingsChange, onBack }: SettingsS
             </SettingRow>
 
             <SettingRow
-              icon={<ShoppingCart className="w-5 h-5" style={{ color: '#fab86d' }} />}
-              title="Pill Buying Reminder"
-              subtitle={`${settings.pillBuyingDaysBefore} days before at ${settings.pillBuyingReminderTime}`}
-              onClick={() => openModal('buying-days', settings.pillBuyingDaysBefore)}
-            >
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </SettingRow>
-
-            <SettingRow
               icon={<Bell className="w-5 h-5" style={{ color: '#f609bc' }} />}
               title="App Active"
               subtitle="Enable all reminders"
@@ -242,6 +235,15 @@ export function SettingsScreen({ settings, onSettingsChange, onBack }: SettingsS
           <div className="bg-white rounded-xl shadow-sm overflow-hidden divide-y divide-gray-100">
 
             <SettingRow
+              icon={<Smartphone className="w-5 h-5" style={{ color: '#f609bc' }} />}
+              title="Home Screen Widgets"
+              subtitle="Add widgets to your home screen"
+              onClick={() => setShowWidgets(true)}
+            >
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </SettingRow>
+
+            <SettingRow
               icon={<Info className="w-5 h-5" style={{ color: '#fab86d' }} />}
               title="About & Help"
               subtitle="App info and support"
@@ -286,6 +288,11 @@ export function SettingsScreen({ settings, onSettingsChange, onBack }: SettingsS
         isOpen={showSoundGuide}
         onClose={() => setShowSoundGuide(false)}
       />
+
+      {/* Widgets Screen */}
+      {showWidgets && (
+        <WidgetsScreen onClose={() => setShowWidgets(false)} />
+      )}
 
       {/* Professional Modal */}
       <Dialog open={activeModal !== null} onOpenChange={(open) => !open && closeModal()}>

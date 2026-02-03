@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Shadow -->
+    <item android:top="2dp">
+        <shape android:shape="oval">
+            <solid android:color="#30000000"/>
+        </shape>
+    </item>
+    <!-- Main gradient -->
+    <item android:bottom="2dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="50%p"
+                android:startColor="#E5E7EB"
+                android:centerColor="#D1D5DB"
+                android:endColor="#9CA3AF"/>
+            <stroke
+                android:width="2dp"
+                android:color="#111827"/>
+        </shape>
+    </item>
+    <!-- Highlight shine -->
+    <item android:bottom="2dp" android:left="6dp" android:top="6dp" android:right="14dp">
+        <shape android:shape="oval">
+            <solid android:color="#50FFFFFF"/>
+        </shape>
+    </item>
+</layer-list>

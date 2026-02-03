@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Base pink gradient -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="135"
+                android:startColor="#F472B6"
+                android:centerColor="#EC4899"
+                android:endColor="#DB2777"
+                android:type="linear"/>
+            <corners android:radius="20dp"/>
+        </shape>
+    </item>
+    <!-- Diagonal stripe overlay — lighter pink lines at 45deg -->
+    <!-- Stripe 1 -->
+    <item android:left="-40dp" android:top="0dp" android:right="0dp" android:bottom="0dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#30FFFFFF"/>
+        </shape>
+    </item>
+    <!-- We achieve the stripe look via repeating insets -->
+    <!-- Row of stripes simulated with narrow offset rectangles -->
+    <item android:left="0dp" android:top="0dp" android:right="0dp" android:bottom="0dp">
+        <layer-list>
+            <item android:left="0dp" android:top="0dp" android:right="60dp" android:bottom="0dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="#18FFFFFF"/>
+                </shape>
+            </item>
+            <item android:left="30dp" android:top="0dp" android:right="90dp" android:bottom="0dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="#18FFFFFF"/>
+                </shape>
+            </item>
+            <item android:left="60dp" android:top="0dp" android:right="120dp" android:bottom="0dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="#18FFFFFF"/>
+                </shape>
+            </item>
+            <item android:left="90dp" android:top="0dp" android:right="150dp" android:bottom="0dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="#18FFFFFF"/>
+                </shape>
+            </item>
+            <item android:left="120dp" android:top="0dp" android:right="180dp" android:bottom="0dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="#18FFFFFF"/>
+                </shape>
+            </item>
+            <item android:left="150dp" android:top="0dp" android:right="210dp" android:bottom="0dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="#18FFFFFF"/>
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</layer-list>

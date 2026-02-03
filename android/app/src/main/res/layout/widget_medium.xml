@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_medium_background"
+    android:paddingStart="18dp"
+    android:paddingEnd="18dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp">
+
+    <!-- Header row: title + stats icon -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Pill Statistics"
+            android:textSize="18sp"
+            android:textColor="#111827"
+            android:fontFamily="sans-serif-black"/>
+
+        <!-- Purple bar-chart icon in light purple circle -->
+        <RelativeLayout
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/stats_icon_background">
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_centerInParent="true"
+                android:src="@drawable/ic_stats"
+                android:tint="#A855F7"/>
+        </RelativeLayout>
+    </LinearLayout>
+
+    <!-- Row 1: Total Pills (gray) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/stat_item_background_gray"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:layout_marginBottom="8dp">
+
+        <!-- Gray circle icon -->
+        <RelativeLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/pill_icon_gray">
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_centerInParent="true"
+                android:src="@drawable/ic_pill"
+                android:tint="#6B7280"/>
+        </RelativeLayout>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Total Pills"
+            android:textSize="15sp"
+            android:textColor="#374151"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginStart="12dp"/>
+
+        <TextView
+            android:id="@+id/widget_total_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="28"
+            android:textSize="26sp"
+            android:textColor="#111827"
+            android:fontFamily="sans-serif-black"/>
+    </LinearLayout>
+
+    <!-- Row 2: Taken (green) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/stat_item_background_green"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:layout_marginBottom="8dp">
+
+        <!-- Dark green circle icon with white checkmark -->
+        <RelativeLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/pill_icon_taken">
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_centerInParent="true"
+                android:src="@drawable/ic_check"
+                android:tint="#FFFFFF"/>
+        </RelativeLayout>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Taken"
+            android:textSize="15sp"
+            android:textColor="#374151"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginStart="12dp"/>
+
+        <TextView
+            android:id="@+id/widget_taken_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1"
+            android:textSize="26sp"
+            android:textColor="#10B981"
+            android:fontFamily="sans-serif-black"/>
+    </LinearLayout>
+
+    <!-- Row 3: Missed (red) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/stat_item_background_red"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
+
+        <!-- Red circle icon with white warning triangle -->
+        <RelativeLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/pill_icon_missed">
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_centerInParent="true"
+                android:src="@drawable/ic_alert"
+                android:tint="#FFFFFF"/>
+        </RelativeLayout>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Missed"
+            android:textSize="15sp"
+            android:textColor="#374151"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginStart="12dp"/>
+
+        <TextView
+            android:id="@+id/widget_missed_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1"
+            android:textSize="26sp"
+            android:textColor="#EF4444"
+            android:fontFamily="sans-serif-black"/>
+    </LinearLayout>
+
+</LinearLayout>

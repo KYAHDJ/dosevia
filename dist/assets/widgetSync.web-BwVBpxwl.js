@@ -1,0 +1,1 @@
+class o{async updateWidgets(){console.log("Widget update not supported on web")}async savePillData(){console.log("Widget data save not supported on web")}async requestPinWidget(){console.log("Widget pin request not supported on web")}}export{o as WidgetSyncWeb};

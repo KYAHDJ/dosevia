@@ -11,6 +11,7 @@ import { SettingsScreen } from './components/SettingsScreen';
 import { HistoryScreen } from './components/HistoryScreen';
 import { StatsScreen } from './components/StatsScreen';
 import { NotesScreen } from './components/NotesScreen';
+import { DailyPillReminderModal } from './components/DailyPillReminderModal';
 import { addDays, isSameDay, isAfter, isBefore, startOfDay } from 'date-fns';
 import { Preferences } from '@capacitor/preferences';
 import { App as CapacitorApp } from '@capacitor/app';
@@ -19,8 +20,8 @@ import {
   scheduleDailyAlarm, 
   cancelAllAlarms,
   scheduleMissedPillWarning,
-  schedulePillBuyingReminder,
 } from '@/app/lib/notifications';
+import { syncWidgetData } from '@/app/lib/widgetSync';
 
 type Screen = 'home' | 'settings' | 'history' | 'stats' | 'notes';
 
@@ -107,6 +108,8 @@ function App() {
     dailyReminderTime: '9:00 PM',
     pillBuyingDaysBefore: 7,
     pillBuyingReminderTime: '9:00 AM',
+    pillBuyingReminderDate: undefined,
+    pillBuyingReminderEnabled: false,
     appActive: true,
     repeatInterval: 30,
     notificationSound: 'Default',
@@ -119,11 +122,46 @@ function App() {
   });
 
   const [notes, setNotes] = useState<Note[]>([]);
+  
+  // Modal states
+  const [showDailyPillModal, setShowDailyPillModal] = useState(false);
 
   /* INIT NOTIFICATIONS */
   useEffect(() => {
     initNotifications();
   }, []);
+
+  /* CHECK IF SHOULD SHOW DAILY PILL MODAL ON APP OPEN */
+  useEffect(() => {
+    if (isLoading || days.length === 0) return;
+
+    const checkAndShowDailyModal = () => {
+      const now = new Date();
+      const today = startOfDay(now);
+      
+      // Find today's pill
+      const todayPill = days.find(d => isSameDay(startOfDay(d.date), today));
+      
+      if (!todayPill || todayPill.status === 'taken') {
+        return; // No pill for today or already taken
+      }
+
+      // Check if it's around the reminder time (within 15 minutes)
+      const [hour, minute] = parseTime(settings.dailyReminderTime);
+      const reminderTime = new Date();
+      reminderTime.setHours(hour, minute, 0, 0);
+      
+      const timeDiff = Math.abs(now.getTime() - reminderTime.getTime());
+      const fifteenMinutes = 15 * 60 * 1000;
+      
+      // Show modal if within 15 minutes of reminder time and pill not taken
+      if (timeDiff <= fifteenMinutes) {
+        setShowDailyPillModal(true);
+      }
+    };
+
+    checkAndShowDailyModal();
+  }, [isLoading, days, settings.dailyReminderTime]);
 
   /* HANDLE ANDROID BACK BUTTON - Proper navigation only */
   useEffect(() => {
@@ -144,6 +182,13 @@ function App() {
       backButtonListener.remove();
     };
   }, [currentScreen]);
+
+  /* SYNC WIDGETS WHENEVER PILL DATA OR CONFIG CHANGES */
+  useEffect(() => {
+    if (days.length > 0 && !isLoading) {
+      syncWidgetData(days, startDate, pillType);
+    }
+  }, [days, startDate, pillType, isLoading]);
 
   /* LOAD SAVED STATE - RUNS ONCE ON APP START */
   useEffect(() => {
@@ -223,6 +268,58 @@ function App() {
 
     loadState();
   }, []); // Only run once on mount
+
+  /* CHECK FOR 24-HOUR MISSED PILLS - RUNS EVERY MINUTE */
+  useEffect(() => {
+    // Don't run if still loading or no days
+    if (isLoading || days.length === 0) {
+      return;
+    }
+
+    const checkMissedPills = () => {
+      const now = new Date();
+      const updatedDays = days.map((day: DayData) => {
+        // Skip if already taken or already marked as missed
+        if (day.status !== 'not_taken') {
+          return day;
+        }
+
+        // Get the scheduled time for this pill
+        const [hour, minute] = parseTime(settings.dailyReminderTime);
+        const pillScheduledTime = new Date(day.date);
+        pillScheduledTime.setHours(hour, minute, 0, 0);
+
+        // Calculate 24 hours after scheduled time
+        const twentyFourHoursLater = new Date(pillScheduledTime.getTime() + 24 * 60 * 60 * 1000);
+
+        // If current time is past 24 hours after scheduled time, mark as missed
+        if (now >= twentyFourHoursLater) {
+          console.log(`⚠️ MISSED: Day ${day.day} - 24 hours have passed since ${pillScheduledTime.toLocaleString()}`);
+          return { ...day, status: 'missed' as PillStatus };
+        }
+
+        return day;
+      });
+
+      // Check if any pills were marked as missed
+      const missedCount = updatedDays.filter(
+        (d, i) => d.status === 'missed' && days[i].status === 'not_taken'
+      ).length;
+
+      if (missedCount > 0) {
+        console.log(`🚨 Marked ${missedCount} pill(s) as missed due to 24-hour timeout`);
+        setDays(updatedDays);
+      }
+    };
+
+    // Run immediately on mount
+    checkMissedPills();
+
+    // Then run every minute
+    const intervalId = setInterval(checkMissedPills, 60 * 1000);
+
+    return () => clearInterval(intervalId);
+  }, [days, isLoading, settings.dailyReminderTime]);
 
   /* CREATE INITIAL PILLS - ONLY ON FIRST RUN */
   useEffect(() => {
@@ -314,6 +411,10 @@ function App() {
         });
 
         console.log('💾 Saved - First 3 pills:', days.slice(0, 3).map(d => `Day ${d.day}: ${d.status}`).join(', '));
+        
+        // Sync widget data after saving
+        await syncWidgetData(days, startDate, pillType);
+        console.log('📱 Widgets synced');
       } catch (error) {
         console.error('❌ Save error:', error);
       }
@@ -350,6 +451,19 @@ function App() {
       return newDays;
     });
   };
+
+  /* HANDLE DAILY PILL MODAL - TAKE PILL */
+  const handleTakePillFromModal = () => {
+    const today = startOfDay(new Date());
+    const todayPill = days.find(d => isSameDay(startOfDay(d.date), today));
+    
+    if (todayPill) {
+      handleStatusChange(todayPill.day, 'taken');
+      setShowDailyPillModal(false);
+    }
+  };
+
+  /* HANDLE PILL BUYING MODAL - CONFIRM PURCHASED */
 
   /* HANDLE START DATE CHANGE - Auto-mark missed pills */
   const handleStartDateChange = (newStartDate: Date) => {
@@ -431,35 +545,6 @@ function App() {
     settings.soundFileUri, 
     settings.vibrateAlways,
     settings.placeboReminder,
-    days
-  ]);
-
-  /* SCHEDULE PILL BUYING REMINDER - Respects App Active setting */
-  useEffect(() => {
-    // If app is NOT active, don't schedule
-    if (!settings.appActive || days.length === 0) {
-      return;
-    }
-
-    // Get the last pill date
-    const lastPill = days[days.length - 1];
-    if (!lastPill) return;
-
-    const [hour, minute] = parseTime(settings.pillBuyingReminderTime);
-
-    schedulePillBuyingReminder(
-      settings.pillBuyingDaysBefore,
-      hour,
-      minute,
-      lastPill.date,
-      '🛒', // Shopping cart icon
-      settings.soundFileUri
-    );
-  }, [
-    settings.appActive,
-    settings.pillBuyingDaysBefore,
-    settings.pillBuyingReminderTime,
-    settings.soundFileUri,
     days
   ]);
 
@@ -545,6 +630,21 @@ function App() {
           />
         )}
       </div>
+
+      {/* Daily Pill Reminder Modal */}
+      {showDailyPillModal && days.length > 0 && (() => {
+        const today = startOfDay(new Date());
+        const todayPill = days.find(d => isSameDay(startOfDay(d.date), today));
+        return todayPill ? (
+          <DailyPillReminderModal
+            isOpen={showDailyPillModal}
+            onTakePill={handleTakePillFromModal}
+            pillDay={todayPill.day}
+            pillDate={todayPill.date}
+            isPlacebo={todayPill.isPlacebo || false}
+          />
+        ) : null;
+      })()}
     </div>
   );
 }

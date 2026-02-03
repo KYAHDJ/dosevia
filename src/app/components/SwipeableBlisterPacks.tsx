@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { DayData, PillType, PillStatus } from '@/types/pill-types';
 import { CalendarBlisterPack } from './CalendarBlisterPack';
 import { startOfDay } from 'date-fns';
@@ -12,16 +12,28 @@ interface SwipeableBlisterPacksProps {
 
 export function SwipeableBlisterPacks({ pillType, days, onStatusChange }: SwipeableBlisterPacksProps) {
   const [currentPackIndex, setCurrentPackIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Determine how many pills per pack (28 pills = 1 blister pack)
   const pillsPerPack = 28;
   const totalPacks = Math.ceil(days.length / pillsPerPack);
+  
+  // Color variations for each pack to help distinguish them
+  const packColors = [
+    { bg: 'linear-gradient(135deg, #fef3f9 0%, #fef9ed 50%, #fefce8 100%)', accent: '#f609bc' }, // Pink-Orange-Yellow
+    { bg: 'linear-gradient(135deg, #fef3f9 0%, #fce7f3 50%, #fef3f9 100%)', accent: '#db2777' }, // Pink-Rose
+    { bg: 'linear-gradient(135deg, #fef9ed 0%, #fed7aa 50%, #fef9ed 100%)', accent: '#f97316' }, // Orange
+    { bg: 'linear-gradient(135deg, #fefce8 0%, #fef3c7 50%, #fefce8 100%)', accent: '#eab308' }, // Yellow
+    { bg: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #f0fdf4 100%)', accent: '#22c55e' }, // Green
+    { bg: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #eff6ff 100%)', accent: '#3b82f6' }, // Blue
+    { bg: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 50%, #faf5ff 100%)', accent: '#a855f7' }, // Purple
+    { bg: 'linear-gradient(135deg, #fdf4ff 0%, #fae8ff 50%, #fdf4ff 100%)', accent: '#d946ef' }, // Fuchsia
+  ];
+  
+  // Get color for current pack (cycles through colors if more than 8 packs)
+  const getCurrentPackColor = (index: number) => packColors[index % packColors.length];
   
   // Split days into packs of 28
   const packs: DayData[][] = [];
@@ -45,60 +57,29 @@ export function SwipeableBlisterPacks({ pillType, days, onStatusChange }: Swipea
     }
   }, [days.length]); // Only run when days array changes length
   
-  const goToPreviousPack = () => {
+  const goToPreviousPack = useCallback(() => {
     if (currentPackIndex > 0 && !isTransitioning) {
       setIsTransitioning(true);
+      setSlideDirection('right');
       setCurrentPackIndex(currentPackIndex - 1);
-      setTimeout(() => setIsTransitioning(false), 300);
+      setTimeout(() => {
+        setIsTransitioning(false);
+        setSlideDirection(null);
+      }, 400);
     }
-  };
+  }, [currentPackIndex, isTransitioning]);
   
-  const goToNextPack = () => {
+  const goToNextPack = useCallback(() => {
     if (currentPackIndex < totalPacks - 1 && !isTransitioning) {
       setIsTransitioning(true);
+      setSlideDirection('left');
       setCurrentPackIndex(currentPackIndex + 1);
-      setTimeout(() => setIsTransitioning(false), 300);
+      setTimeout(() => {
+        setIsTransitioning(false);
+        setSlideDirection(null);
+      }, 400);
     }
-  };
-  
-  // Swipe detection with minimum distance
-  const minSwipeDistance = 50;
-  
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-    setIsDragging(true);
-  };
-  
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (!touchStart) return;
-    const currentTouch = e.targetTouches[0].clientX;
-    setTouchEnd(currentTouch);
-    
-    // Calculate drag offset with bounds
-    const offset = currentTouch - touchStart;
-    const maxOffset = 100; // Max pixels to drag
-    const boundedOffset = Math.max(-maxOffset, Math.min(maxOffset, offset));
-    setDragOffset(boundedOffset);
-  };
-  
-  const onTouchEnd = () => {
-    setIsDragging(false);
-    setDragOffset(0);
-    
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-    
-    if (isLeftSwipe && currentPackIndex < totalPacks - 1) {
-      goToNextPack();
-    }
-    if (isRightSwipe && currentPackIndex > 0) {
-      goToPreviousPack();
-    }
-  };
+  }, [currentPackIndex, totalPacks, isTransitioning]);
   
   // For single pack (28 or less pills), just show regular calendar
   if (totalPacks <= 1) {
@@ -111,35 +92,42 @@ export function SwipeableBlisterPacks({ pillType, days, onStatusChange }: Swipea
     );
   }
   
-  // For multiple packs, show enhanced SWIPE interface with smooth visual feedback
+  // For multiple packs, show button navigation with smooth slide transitions
   return (
     <div className="relative w-full">
-      {/* Pack indicator dots - Now scrollable for many packs */}
+      {/* Pack indicator dots with colors - Now scrollable for many packs */}
       <div className="overflow-x-auto scrollbar-hide mb-3 sm:mb-4">
         <div className="flex items-center justify-center gap-1.5 sm:gap-2 min-w-max px-4">
-          {packs.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => {
-                if (!isTransitioning) {
-                  setIsTransitioning(true);
-                  setCurrentPackIndex(index);
-                  setTimeout(() => setIsTransitioning(false), 300);
-                }
-              }}
-              className={`transition-all duration-300 ${
-                index === currentPackIndex
-                  ? 'w-7 h-3 sm:w-9 sm:h-3.5 rounded-full scale-110'
-                  : 'w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full opacity-40 hover:opacity-70 hover:scale-110'
-              }`}
-              style={{
-                background: index === currentPackIndex 
-                  ? 'linear-gradient(135deg, #f609bc, #fab86d)'
-                  : '#d1d5db',
-              }}
-              aria-label={`Go to pack ${index + 1}`}
-            />
-          ))}
+          {packs.map((_, index) => {
+            const packColor = getCurrentPackColor(index);
+            return (
+              <button
+                key={index}
+                onClick={() => {
+                  if (!isTransitioning && index !== currentPackIndex) {
+                    setIsTransitioning(true);
+                    setSlideDirection(index > currentPackIndex ? 'left' : 'right');
+                    setCurrentPackIndex(index);
+                    setTimeout(() => {
+                      setIsTransitioning(false);
+                      setSlideDirection(null);
+                    }, 400);
+                  }
+                }}
+                className={`transition-all duration-300 ${
+                  index === currentPackIndex
+                    ? 'w-7 h-3 sm:w-9 sm:h-3.5 rounded-full scale-110'
+                    : 'w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full opacity-40 hover:opacity-70 hover:scale-110'
+                }`}
+                style={{
+                  background: index === currentPackIndex 
+                    ? packColor.accent
+                    : '#d1d5db',
+                }}
+                aria-label={`Go to pack ${index + 1}`}
+              />
+            );
+          })}
         </div>
       </div>
       
@@ -151,10 +139,10 @@ export function SwipeableBlisterPacks({ pillType, days, onStatusChange }: Swipea
           className={`p-1.5 sm:p-2 rounded-full transition-all ${
             currentPackIndex === 0 
               ? 'opacity-0 pointer-events-none' 
-              : 'opacity-60 hover:opacity-100 active:scale-90'
+              : 'opacity-70 hover:opacity-100 active:scale-90'
           }`}
           style={{
-            background: currentPackIndex === 0 ? 'transparent' : 'linear-gradient(135deg, #f609bc, #fab86d)',
+            background: currentPackIndex === 0 ? 'transparent' : getCurrentPackColor(currentPackIndex).accent,
           }}
         >
           <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
@@ -164,9 +152,7 @@ export function SwipeableBlisterPacks({ pillType, days, onStatusChange }: Swipea
           <h3 
             className="text-base sm:text-lg font-bold"
             style={{
-              background: 'linear-gradient(135deg, #f609bc, #fab86d)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              color: getCurrentPackColor(currentPackIndex).accent,
             }}
           >
             Pack {currentPackIndex + 1} of {totalPacks}
@@ -182,90 +168,65 @@ export function SwipeableBlisterPacks({ pillType, days, onStatusChange }: Swipea
           className={`p-1.5 sm:p-2 rounded-full transition-all ${
             currentPackIndex === totalPacks - 1 
               ? 'opacity-0 pointer-events-none' 
-              : 'opacity-60 hover:opacity-100 active:scale-90'
+              : 'opacity-70 hover:opacity-100 active:scale-90'
           }`}
           style={{
-            background: currentPackIndex === totalPacks - 1 ? 'transparent' : 'linear-gradient(135deg, #f609bc, #fab86d)',
+            background: currentPackIndex === totalPacks - 1 ? 'transparent' : getCurrentPackColor(currentPackIndex).accent,
           }}
         >
           <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
         </button>
       </div>
       
-      {/* Swipeable container with smooth feedback */}
+      {/* Smooth slide container - button navigation only */}
       <div 
         ref={containerRef}
-        className="relative w-full select-none overflow-hidden"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
+        className="relative w-full overflow-hidden"
       >
-        {/* Current pack with drag transform */}
+        {/* Current pack with smooth slide transition */}
         <div 
-          className={`w-full ${
-            isDragging ? 'cursor-grabbing' : 'cursor-grab'
-          } ${
-            isTransitioning ? 'transition-all duration-300 ease-out' : ''
-          }`}
+          className="w-full"
           style={{
-            transform: isDragging 
-              ? `translateX(${dragOffset}px) scale(${1 - Math.abs(dragOffset) / 1000})` 
-              : 'translateX(0) scale(1)',
-            opacity: isDragging ? 1 - Math.abs(dragOffset) / 300 : 1,
+            transform: isTransitioning 
+              ? slideDirection === 'left' 
+                ? 'translateX(-100%)' 
+                : 'translateX(100%)'
+              : 'translateX(0)',
+            opacity: isTransitioning ? 0 : 1,
+            transition: isTransitioning 
+              ? 'transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)' 
+              : 'none',
           }}
         >
           <CalendarBlisterPack
             pillType={pillType}
             days={packs[currentPackIndex]}
             onStatusChange={onStatusChange}
+            packColor={getCurrentPackColor(currentPackIndex).bg}
           />
         </div>
-        
-        {/* Preview of next/previous pack while dragging */}
-        {isDragging && dragOffset < -20 && currentPackIndex < totalPacks - 1 && (
-          <div 
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              transform: `translateX(${100 + (dragOffset / 2)}%)`,
-              opacity: Math.abs(dragOffset) / 100,
-            }}
-          >
-            <div className="w-full h-full bg-gradient-to-l from-pink-50 to-transparent rounded-lg" />
-          </div>
-        )}
-        {isDragging && dragOffset > 20 && currentPackIndex > 0 && (
-          <div 
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              transform: `translateX(${-100 + (dragOffset / 2)}%)`,
-              opacity: Math.abs(dragOffset) / 100,
-            }}
-          >
-            <div className="w-full h-full bg-gradient-to-r from-pink-50 to-transparent rounded-lg" />
-          </div>
-        )}
       </div>
       
-      {/* Enhanced swipe instruction */}
+      {/* Navigation instruction */}
       <div className="text-center mt-4 sm:mt-5 px-2">
         <div className="inline-flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-500 bg-white/70 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-200 shadow-sm">
           {currentPackIndex > 0 && (
-            <span className="animate-pulse text-pink-500">←</span>
+            <span className="animate-pulse" style={{ color: getCurrentPackColor(currentPackIndex).accent }}>←</span>
           )}
-          <span className="font-medium">Swipe or tap arrows</span>
+          <span className="font-medium">Use arrows to navigate packs</span>
           {currentPackIndex < totalPacks - 1 && (
-            <span className="animate-pulse text-pink-500">→</span>
+            <span className="animate-pulse" style={{ color: getCurrentPackColor(currentPackIndex).accent }}>→</span>
           )}
         </div>
       </div>
       
-      {/* Enhanced edge indicators with gradient */}
+      {/* Edge indicators with pack colors */}
       {currentPackIndex > 0 && (
         <div 
           className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-20 sm:h-24 rounded-r-full opacity-60 animate-pulse"
           style={{
-            background: 'linear-gradient(135deg, #f609bc, #fab86d)',
-            boxShadow: '0 0 10px rgba(246, 9, 188, 0.3)',
+            background: getCurrentPackColor(currentPackIndex).accent,
+            boxShadow: `0 0 10px ${getCurrentPackColor(currentPackIndex).accent}40`,
           }}
         />
       )}
@@ -273,8 +234,8 @@ export function SwipeableBlisterPacks({ pillType, days, onStatusChange }: Swipea
         <div 
           className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-20 sm:h-24 rounded-l-full opacity-60 animate-pulse"
           style={{
-            background: 'linear-gradient(135deg, #f609bc, #fab86d)',
-            boxShadow: '0 0 10px rgba(246, 9, 188, 0.3)',
+            background: getCurrentPackColor(currentPackIndex).accent,
+            boxShadow: `0 0 10px ${getCurrentPackColor(currentPackIndex).accent}40`,
           }}
         />
       )}

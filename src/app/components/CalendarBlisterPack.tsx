@@ -10,9 +10,10 @@ interface CalendarBlisterPackProps {
   pillType: PillType;
   days: DayData[];
   onStatusChange: (day: number, status: PillStatus) => void;
+  packColor?: string; // Optional color gradient for the pack background
 }
 
-export function CalendarBlisterPack({ pillType, days, onStatusChange }: CalendarBlisterPackProps) {
+export function CalendarBlisterPack({ pillType, days, onStatusChange, packColor }: CalendarBlisterPackProps) {
   const [selectedDay, setSelectedDay] = useState<DayData | null>(null);
   const [puncturingDay, setPuncturingDay] = useState<number | null>(null);
   const [animatingDay, setAnimatingDay] = useState<DayData | null>(null);
@@ -89,7 +90,7 @@ export function CalendarBlisterPack({ pillType, days, onStatusChange }: Calendar
         <div
           className="relative rounded-2xl sm:rounded-3xl p-3 sm:p-4 md:p-5 shadow-xl sm:shadow-2xl overflow-hidden"
           style={{
-            background: 'linear-gradient(135deg, #fef3f9 0%, #fef9ed 50%, #fefce8 100%)',
+            background: packColor || 'linear-gradient(135deg, #fef3f9 0%, #fef9ed 50%, #fefce8 100%)',
             boxShadow: '0 10px 40px rgba(246, 9, 188, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
           }}
         >
