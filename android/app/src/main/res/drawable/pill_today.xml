@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Outer ring (yellow glow) -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#FBBF24"/>
+        </shape>
+    </item>
+    <!-- Main gradient -->
+    <item android:left="3dp" android:top="3dp" android:right="3dp" android:bottom="3dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="50%p"
+                android:startColor="#E5E7EB"
+                android:centerColor="#D1D5DB"
+                android:endColor="#9CA3AF"/>
+            <stroke
+                android:width="2dp"
+                android:color="#111827"/>
+        </shape>
+    </item>
+    <!-- Highlight shine -->
+    <item android:left="9dp" android:top="9dp" android:right="17dp" android:bottom="6dp">
+        <shape android:shape="oval">
+            <solid android:color="#50FFFFFF"/>
+        </shape>
+    </item>
+</layer-list>

@@ -1,0 +1,6 @@
+{
+  "appId": "com.dosevia.app",
+  "appName": "Dosevia",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}

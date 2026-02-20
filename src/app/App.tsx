@@ -1,0 +1,667 @@
+import { useState, useEffect } from 'react';
+import {
+  DayData,
+  PillType,
+  PillStatus,
+  ReminderSettings,
+  Note,
+} from '@/types/pill-types';
+import { HomeScreen } from './components/HomeScreen';
+import { SettingsScreen } from './components/SettingsScreen';
+import { HistoryScreen } from './components/HistoryScreen';
+import { StatsScreen } from './components/StatsScreen';
+import { NotesScreen } from './components/NotesScreen';
+import { DailyPillReminderModal } from './components/DailyPillReminderModal';
+import { addDays, isSameDay, isAfter, isBefore, startOfDay } from 'date-fns';
+import { Preferences } from '@capacitor/preferences';
+import { App as CapacitorApp } from '@capacitor/app';
+import { 
+  initNotifications, 
+  scheduleDailyAlarm, 
+  cancelAllAlarms,
+  scheduleMissedPillWarning,
+} from '@/app/lib/notifications';
+import { syncWidgetData } from '@/app/lib/widgetSync';
+
+type Screen = 'home' | 'settings' | 'history' | 'stats' | 'notes';
+
+const STORAGE_KEY = 'dosevia-app-state';
+const STORAGE_VERSION = '2.0';
+
+// Helper function to get pill configuration for any pill type
+function getPillConfiguration(
+  pillType: PillType, 
+  customConfig?: { active: number; placebo: number; lowDose: number }
+): { 
+  name: string; 
+  active: number; 
+  placebo: number; 
+  lowDose: number; 
+  total: number;
+} {
+  switch (pillType) {
+    // Standard 28-day cycles
+    case '21+7':
+      return { name: '21+7', active: 21, placebo: 7, lowDose: 0, total: 28 };
+    case '24+4':
+      return { name: '24+4', active: 24, placebo: 4, lowDose: 0, total: 28 };
+    case '26+2':
+      return { name: '26+2', active: 26, placebo: 2, lowDose: 0, total: 28 };
+    case '28-day':
+      return { name: '28-day continuous', active: 28, placebo: 0, lowDose: 0, total: 28 };
+    
+    // Extended cycle regimens
+    case '84+7':
+      return { name: '84+7 (91-day)', active: 84, placebo: 7, lowDose: 0, total: 91 };
+    case '84+7-low':
+      return { name: '84+7 low-dose', active: 84, placebo: 0, lowDose: 7, total: 91 };
+    case '365-day':
+      return { name: '365-day continuous', active: 365, placebo: 0, lowDose: 0, total: 365 };
+    
+    // Progestin-only
+    case '28-pop':
+      return { name: '28-day POP', active: 28, placebo: 0, lowDose: 0, total: 28 };
+    
+    // Flexible/Custom
+    case 'flexible':
+      return { name: 'Flexible', active: 84, placebo: 4, lowDose: 0, total: 88 };
+    case 'custom':
+      // Use custom configuration if provided
+      if (customConfig) {
+        const total = customConfig.active + customConfig.placebo + customConfig.lowDose;
+        return { 
+          name: 'Custom', 
+          active: customConfig.active, 
+          placebo: customConfig.placebo, 
+          lowDose: customConfig.lowDose, 
+          total 
+        };
+      }
+      return { name: 'Custom', active: 21, placebo: 7, lowDose: 0, total: 28 };
+    
+    default:
+      return { name: '21+7 (default)', active: 21, placebo: 7, lowDose: 0, total: 28 };
+  }
+}
+
+function App() {
+  const [currentScreen, setCurrentScreen] = useState<Screen>('home');
+  const [pillType, setPillType] = useState<PillType>('21+7');
+  const [startDate, setStartDate] = useState(new Date());
+  const [days, setDays] = useState<DayData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFirstRun, setIsFirstRun] = useState(false);
+  
+  // Custom pill configuration (for 'custom' pill type)
+  const [customPillConfig, setCustomPillConfig] = useState<{
+    active: number;
+    placebo: number;
+    lowDose: number;
+  }>({
+    active: 21,
+    placebo: 7,
+    lowDose: 0,
+  });
+
+  const [settings, setSettings] = useState<ReminderSettings>({
+    placeboReminder: true,
+    dailyReminderTime: '9:00 PM',
+    pillBuyingDaysBefore: 7,
+    pillBuyingReminderTime: '9:00 AM',
+    pillBuyingReminderDate: undefined,
+    pillBuyingReminderEnabled: false,
+    appActive: true,
+    repeatInterval: 30,
+    notificationSound: 'Default',
+    soundFileUri: '',
+    playSoundAlways: true,
+    vibrateAlways: true,
+    notificationTitle: 'Time to take your pill',
+    notificationSubtitle: 'Don\'t forget your daily dose',
+    notificationIcon: '💊',
+  });
+
+  const [notes, setNotes] = useState<Note[]>([]);
+  
+  // Modal states
+  const [showDailyPillModal, setShowDailyPillModal] = useState(false);
+
+  /* INIT NOTIFICATIONS */
+  useEffect(() => {
+    initNotifications();
+  }, []);
+
+  /* CHECK IF SHOULD SHOW DAILY PILL MODAL ON APP OPEN */
+  useEffect(() => {
+    if (isLoading || days.length === 0) return;
+
+    const checkAndShowDailyModal = () => {
+      const now = new Date();
+      const today = startOfDay(now);
+      
+      // Find today's pill
+      const todayPill = days.find(d => isSameDay(startOfDay(d.date), today));
+      
+      if (!todayPill || todayPill.status === 'taken') {
+        return; // No pill for today or already taken
+      }
+
+      // Check if it's around the reminder time (within 15 minutes)
+      const [hour, minute] = parseTime(settings.dailyReminderTime);
+      const reminderTime = new Date();
+      reminderTime.setHours(hour, minute, 0, 0);
+      
+      const timeDiff = Math.abs(now.getTime() - reminderTime.getTime());
+      const fifteenMinutes = 15 * 60 * 1000;
+      
+      // Show modal if within 15 minutes of reminder time and pill not taken
+      if (timeDiff <= fifteenMinutes) {
+        setShowDailyPillModal(true);
+      }
+    };
+
+    checkAndShowDailyModal();
+  }, [isLoading, days, settings.dailyReminderTime]);
+
+  /* HANDLE ANDROID BACK BUTTON - Proper navigation only */
+  useEffect(() => {
+    const backButtonListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      // If we're on any screen other than home, go back to home
+      if (currentScreen !== 'home') {
+        setCurrentScreen('home');
+        return;
+      }
+      
+      // If we're on home screen and can't go back in browser history, exit app
+      if (!canGoBack) {
+        CapacitorApp.exitApp();
+      }
+    });
+
+    return () => {
+      backButtonListener.remove();
+    };
+  }, [currentScreen]);
+
+
+  /* LOAD SAVED STATE - RUNS ONCE ON APP START */
+  useEffect(() => {
+    const loadState = async () => {
+      try {
+        console.log('🔄 Loading saved state...');
+        const { value } = await Preferences.get({ key: STORAGE_KEY });
+        
+        if (!value) {
+          console.log('❌ No saved data - this is first run');
+          setIsFirstRun(true);
+          setIsLoading(false);
+          return;
+        }
+
+        const saved = JSON.parse(value);
+        console.log('📦 Found saved data');
+        
+        // Restore everything
+        if (saved.pillType) {
+          console.log('✅ Restoring pillType:', saved.pillType);
+          setPillType(saved.pillType);
+        }
+
+        if (saved.startDate) {
+          console.log('✅ Restoring startDate:', saved.startDate);
+          setStartDate(new Date(saved.startDate));
+        }
+
+        if (saved.days && Array.isArray(saved.days)) {
+          const restoredDays = saved.days.map((day: any) => ({
+            ...day,
+            date: new Date(day.date),
+          }));
+          console.log('✅ Restored', restoredDays.length, 'pills');
+          console.log('📊 First 5 statuses:', restoredDays.slice(0, 5).map((d: any) => `Day ${d.day}: ${d.status}`).join(', '));
+          
+          // AUTO-MARK MISSED PILLS
+          const today = startOfDay(new Date());
+          const updatedDays = restoredDays.map((day: DayData) => {
+            const pillDate = startOfDay(day.date);
+            // If pill date is in the past and not taken, mark as missed
+            if (isBefore(pillDate, today) && day.status === 'not_taken') {
+              console.log(`⚠️ Auto-marking Day ${day.day} as missed (date: ${pillDate.toDateString()})`);
+              return { ...day, status: 'missed' as PillStatus };
+            }
+            return day;
+          });
+          
+          setDays(updatedDays);
+        }
+
+        if (saved.settings) {
+          console.log('✅ Restoring settings');
+          setSettings(saved.settings);
+        }
+
+        if (saved.notes && Array.isArray(saved.notes)) {
+          const restoredNotes = saved.notes.map((note: any) => ({
+            ...note,
+            date: new Date(note.date),
+            createdAt: new Date(note.createdAt),
+            updatedAt: new Date(note.updatedAt),
+          }));
+          console.log('✅ Restored', restoredNotes.length, 'notes');
+          setNotes(restoredNotes);
+        }
+
+        console.log('✅ Load complete');
+      } catch (error) {
+        console.error('❌ Error loading:', error);
+        setIsFirstRun(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadState();
+  }, []); // Only run once on mount
+
+  /* CHECK FOR 24-HOUR MISSED PILLS - RUNS EVERY MINUTE */
+  useEffect(() => {
+    // Don't run if still loading or no days
+    if (isLoading || days.length === 0) {
+      return;
+    }
+
+    const checkMissedPills = () => {
+      const now = new Date();
+      const updatedDays = days.map((day: DayData) => {
+        // Skip if already taken or already marked as missed
+        if (day.status !== 'not_taken') {
+          return day;
+        }
+
+        // Get the scheduled time for this pill
+        const [hour, minute] = parseTime(settings.dailyReminderTime);
+        const pillScheduledTime = new Date(day.date);
+        pillScheduledTime.setHours(hour, minute, 0, 0);
+
+        // Calculate 24 hours after scheduled time
+        const twentyFourHoursLater = new Date(pillScheduledTime.getTime() + 24 * 60 * 60 * 1000);
+
+        // If current time is past 24 hours after scheduled time, mark as missed
+        if (now >= twentyFourHoursLater) {
+          console.log(`⚠️ MISSED: Day ${day.day} - 24 hours have passed since ${pillScheduledTime.toLocaleString()}`);
+          return { ...day, status: 'missed' as PillStatus };
+        }
+
+        return day;
+      });
+
+      // Check if any pills were marked as missed
+      const missedCount = updatedDays.filter(
+        (d, i) => d.status === 'missed' && days[i].status === 'not_taken'
+      ).length;
+
+      if (missedCount > 0) {
+        console.log(`🚨 Marked ${missedCount} pill(s) as missed due to 24-hour timeout`);
+        setDays(updatedDays);
+      }
+    };
+
+    // Run immediately on mount
+    checkMissedPills();
+
+    // Then run every minute
+    const intervalId = setInterval(checkMissedPills, 60 * 1000);
+
+    return () => clearInterval(intervalId);
+  }, [days, isLoading, settings.dailyReminderTime]);
+
+  /* CREATE INITIAL PILLS - ONLY ON FIRST RUN */
+  useEffect(() => {
+    // Don't run if loading, already have pills, or not first run
+    if (isLoading || days.length > 0 || !isFirstRun) {
+      return;
+    }
+
+    console.log('🆕 Creating initial pills (first run only)');
+    
+    const newDays: DayData[] = [];
+    const pillConfig = getPillConfiguration(pillType, customPillConfig);
+
+    for (let i = 0; i < pillConfig.total; i++) {
+      newDays.push({
+        day: i + 1,
+        status: 'not_taken',
+        isPlacebo: i >= pillConfig.active && pillConfig.placebo > 0,
+        isLowDose: i >= pillConfig.active && pillConfig.lowDose > 0,
+        date: addDays(startDate, i),
+        takenAt: undefined,
+      });
+    }
+
+    console.log('✅ Created', newDays.length, 'pills for', pillConfig.name);
+    setDays(newDays);
+  }, [isLoading, isFirstRun, days.length]);
+
+  /* REGENERATE DAYS WHEN PILL TYPE OR CUSTOM CONFIG CHANGES */
+  useEffect(() => {
+    // Skip if loading or no days yet
+    if (isLoading || days.length === 0) {
+      return;
+    }
+
+    console.log('🔄 Pill type/config changed to:', pillType, '- regenerating days and RESETTING all statuses');
+    
+    const newDays: DayData[] = [];
+    const pillConfig = getPillConfiguration(pillType, customPillConfig);
+
+    // Generate new days based on pill type
+    // IMPORTANT: Reset ALL statuses to 'not_taken' when pill type changes
+    for (let i = 0; i < pillConfig.total; i++) {
+      newDays.push({
+        day: i + 1,
+        status: 'not_taken', // Always reset to not_taken when pill type changes
+        isPlacebo: i >= pillConfig.active && pillConfig.placebo > 0,
+        isLowDose: i >= pillConfig.active && pillConfig.lowDose > 0,
+        date: addDays(startDate, i),
+        takenAt: undefined, // Clear any previous taken time
+      });
+    }
+
+    console.log('✅ Regenerated', newDays.length, 'pills for', pillConfig.name, '- all statuses reset to not_taken');
+    setDays(newDays);
+  }, [pillType, customPillConfig]); // Trigger when pillType OR customPillConfig changes
+
+  /* SAVE STATE WHENEVER IT CHANGES */
+  useEffect(() => {
+    if (isLoading || days.length === 0) {
+      return;
+    }
+
+    const saveState = async () => {
+      try {
+        const stateToSave = {
+          version: STORAGE_VERSION,
+          pillType,
+          startDate: startDate.toISOString(),
+          days: days.map(day => ({
+            ...day,
+            date: day.date.toISOString(),
+          })),
+          settings,
+          notes: notes.map(note => ({
+            ...note,
+            date: note.date.toISOString(),
+            createdAt: note.createdAt.toISOString(),
+            updatedAt: note.updatedAt.toISOString(),
+          })),
+          lastSaved: new Date().toISOString(),
+        };
+
+        await Preferences.set({
+          key: STORAGE_KEY,
+          value: JSON.stringify(stateToSave),
+        });
+
+        console.log('💾 Saved - First 3 pills:', days.slice(0, 3).map(d => `Day ${d.day}: ${d.status}`).join(', '));
+        
+      } catch (error) {
+        console.error('❌ Save error:', error);
+      }
+    };
+
+    saveState();
+  }, [days, pillType, startDate, settings, notes, isLoading]);
+
+  /* HANDLE PILL STATUS CHANGE - FIXED VERSION */
+  const handleStatusChange = async (day: number, status: PillStatus) => {
+  console.log(`🔄 Changing Day ${day} to: ${status}`);
+
+  let updatedDays: DayData[] = [];
+
+  setDays((currentDays) => {
+    updatedDays = currentDays.map((x) => {
+      if (x.day === day) {
+        return {
+          ...x,
+          status,
+          takenAt:
+            status === 'taken'
+              ? new Date().toISOString()
+              : undefined,
+        };
+      }
+      return x;
+    });
+
+    console.log(`✅ Updated Day ${day}`);
+
+    // ✅ MOVE THIS PART INSIDE
+    const updatedPill = updatedDays.find(d => d.day === day);
+
+    if (
+      updatedPill &&
+      status === 'taken' &&
+      isSameDay(updatedPill.date, new Date())
+    ) {
+      console.log('🔕 Canceling alarms');
+      cancelAllAlarms();
+    }
+
+    return updatedDays;
+  });
+
+  // ✅ Sync AFTER updatedDays has been created
+  await syncWidgetData(updatedDays, startDate, pillType);
+  console.log('📱 Widget synced after pill change');
+};
+
+
+  /* HANDLE DAILY PILL MODAL - TAKE PILL */
+  const handleTakePillFromModal = () => {
+    const today = startOfDay(new Date());
+    const todayPill = days.find(d => isSameDay(startOfDay(d.date), today));
+    
+    if (todayPill) {
+      handleStatusChange(todayPill.day, 'taken');
+      setShowDailyPillModal(false);
+    }
+  };
+
+  /* HANDLE PILL BUYING MODAL - CONFIRM PURCHASED */
+
+  /* HANDLE START DATE CHANGE - Auto-mark missed pills */
+  const handleStartDateChange = (newStartDate: Date) => {
+    console.log('📅 Start date changed to:', newStartDate.toDateString());
+    setStartDate(newStartDate);
+    
+    // Recalculate all pill dates and auto-mark missed ones
+    setDays((currentDays) => {
+      const today = startOfDay(new Date());
+      const updatedDays = currentDays.map((day, index) => {
+        const newDate = addDays(newStartDate, index);
+        const pillDate = startOfDay(newDate);
+        
+        // Auto-mark as missed if in the past and not taken
+        let newStatus = day.status;
+        if (isBefore(pillDate, today) && day.status === 'not_taken') {
+          console.log(`⚠️ Auto-marking Day ${day.day} as missed (new date: ${newDate.toDateString()})`);
+          newStatus = 'missed';
+        }
+        
+        return {
+          ...day,
+          date: newDate,
+          status: newStatus,
+        };
+      });
+      
+      return updatedDays;
+    });
+  };
+
+  /* SCHEDULE ALARM AND MISSED PILL WARNING - Respects App Active setting */
+  useEffect(() => {
+    // If app is NOT active, cancel all alarms and return
+    if (!settings.appActive) {
+      console.log('🔕 App Active is OFF - canceling all alarms and notifications');
+      cancelAllAlarms();
+      return;
+    }
+
+    // Only schedule if app is active and we have days
+    if (days.length === 0) {
+      return;
+    }
+
+    const [hour, minute] = parseTime(settings.dailyReminderTime);
+    const today = new Date();
+    const todayPill = days.find(day => isSameDay(day.date, today));
+
+    // Schedule main alarm with ICON and SOUND
+    scheduleDailyAlarm(
+      hour,
+      minute,
+      settings.notificationTitle,
+      settings.notificationSubtitle,
+      settings.notificationIcon,      // 🎨 Icon emoji
+      settings.soundFileUri,           // 🔊 Sound file URI
+      settings.vibrateAlways,
+      todayPill?.status === 'taken'
+    );
+
+    // Schedule missed pill warning (only if placebo reminder is on OR it's an active pill)
+    if (todayPill && todayPill.status === 'not_taken') {
+      // Only remind for placebo pills if placebo reminder is enabled
+      if (!todayPill.isPlacebo || settings.placeboReminder) {
+        scheduleMissedPillWarning(
+          hour, 
+          minute,
+          settings.notificationIcon,     // 🎨 Icon emoji
+          settings.soundFileUri          // 🔊 Sound file URI
+        );
+        console.log('⚠️ Scheduled missed pill warning');
+      }
+    }
+  }, [
+    settings.appActive, 
+    settings.dailyReminderTime, 
+    settings.notificationIcon, 
+    settings.soundFileUri, 
+    settings.vibrateAlways,
+    settings.placeboReminder,
+    days
+  ]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50 flex items-center justify-center">
+        <div className="text-center">
+          <div 
+            className="inline-block w-16 h-16 rounded-full mb-4"
+            style={{
+              background: 'linear-gradient(135deg, #f609bc, #fab86d)',
+              animation: 'pulse 2s ease-in-out infinite',
+            }}
+          />
+          <p className="text-gray-600 font-medium">Loading Dosevia...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50 overflow-hidden">
+      <div className="w-full h-full max-w-md mx-auto bg-white shadow-xl overflow-y-auto overflow-x-hidden">
+        {currentScreen === 'home' && (
+          <HomeScreen
+            pillType={pillType}
+            startDate={startDate}
+            days={days}
+            settings={settings}
+            onPillTypeChange={setPillType}
+            onCustomPillConfigChange={(active, placebo, lowDose) => {
+              setCustomPillConfig({ active, placebo, lowDose });
+            }}
+            onStartDateChange={handleStartDateChange}
+            onStatusChange={handleStatusChange}
+            onNavigate={setCurrentScreen}
+          />
+        )}
+
+        {currentScreen === 'settings' && (
+          <SettingsScreen
+            settings={settings}
+            onSettingsChange={setSettings}
+            onBack={() => setCurrentScreen('home')}
+          />
+        )}
+
+        {currentScreen === 'history' && (
+          <HistoryScreen days={days} onBack={() => setCurrentScreen('home')} />
+        )}
+
+        {currentScreen === 'stats' && (
+          <StatsScreen
+            days={days}
+            startDate={startDate}
+            onBack={() => setCurrentScreen('home')}
+          />
+        )}
+
+        {currentScreen === 'notes' && (
+          <NotesScreen
+            notes={notes}
+            onAddNote={(note) => {
+              const newNote: Note = {
+                ...note,
+                id: `note_${Date.now()}_${Math.random()}`,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              };
+              setNotes([...notes, newNote]);
+            }}
+            onEditNote={(id, content) => {
+              setNotes(notes.map(note => 
+                note.id === id 
+                  ? { ...note, content, updatedAt: new Date() }
+                  : note
+              ));
+            }}
+            onDeleteNote={(id) => {
+              setNotes(notes.filter(note => note.id !== id));
+            }}
+            onBack={() => setCurrentScreen('home')}
+          />
+        )}
+      </div>
+
+      {/* Daily Pill Reminder Modal */}
+      {showDailyPillModal && days.length > 0 && (() => {
+        const today = startOfDay(new Date());
+        const todayPill = days.find(d => isSameDay(startOfDay(d.date), today));
+        return todayPill ? (
+          <DailyPillReminderModal
+            isOpen={showDailyPillModal}
+            onTakePill={handleTakePillFromModal}
+            pillDay={todayPill.day}
+            pillDate={todayPill.date}
+            isPlacebo={todayPill.isPlacebo || false}
+          />
+        ) : null;
+      })()}
+    </div>
+  );
+}
+
+function parseTime(time: string): [number, number] {
+  if (time.includes('AM') || time.includes('PM')) {
+    const [t, mod] = time.split(' ');
+    let [h, m] = t.split(':').map(Number);
+    if (mod === 'PM' && h < 12) h += 12;
+    if (mod === 'AM' && h === 12) h = 0;
+    return [h, m];
+  }
+  return time.split(':').map(Number) as [number, number];
+}
+
+export default App;

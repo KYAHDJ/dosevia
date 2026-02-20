@@ -1,0 +1,11 @@
+﻿# Android Studio / Gradle ignores
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+*.apk
+*.ap_
+*.aab
+.DS_Store
+*.log

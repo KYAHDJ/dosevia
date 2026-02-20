@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Darkened/pressed appearance -->
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="50%p"
+                android:startColor="#6B7280"
+                android:centerColor="#4B5563"
+                android:endColor="#374151"/>
+            <stroke
+                android:width="2dp"
+                android:color="#111827"/>
+        </shape>
+    </item>
+    <!-- Inner shadow effect -->
+    <item android:left="4dp" android:top="4dp" android:right="4dp" android:bottom="4dp">
+        <shape android:shape="oval">
+            <stroke
+                android:width="1dp"
+                android:color="#20000000"/>
+        </shape>
+    </item>
+</layer-list>

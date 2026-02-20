@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+  Simple, clean widget layout showing:
+  PILLS TAKEN TODAY
+  X / Y
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp"
+    android:background="@drawable/widget_background">
+    
+    <!-- Title -->
+    <TextView
+        android:id="@+id/widget_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PILLS TAKEN"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="#6B7280"
+        android:letterSpacing="0.05"
+        android:layout_marginBottom="8dp" />
+    
+    <!-- Pill Count -->
+    <TextView
+        android:id="@+id/widget_pill_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0 / 28"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="#1F2937" />
+
+</LinearLayout>
