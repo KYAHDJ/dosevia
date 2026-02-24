@@ -28,25 +28,56 @@ object WidgetCalendarBitmapRenderer {
         val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 
-        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#EC2BAA") }
+        val radius = w * 0.08f
+        canvas.drawRoundRect(RectF(0f, 0f, w.toFloat(), h.toFloat()), radius, radius, bgPaint)
+
+        val stripePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#F74CC0")
+            strokeWidth = w * 0.04f
+            alpha = 130
+        }
+        val step = w * 0.12f
+        var startX = -h.toFloat()
+        while (startX < w + h) {
+            canvas.drawLine(startX, 0f, startX + h, h.toFloat(), stripePaint)
+            startX += step
+        }
+
+        val margin = w * 0.05f
+        val topCardHeight = h * 0.22f
+        val topCardRect = RectF(margin, margin, w - margin, margin + topCardHeight)
+        val topCardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             shader = LinearGradient(
-                0f, 0f, w.toFloat(), h.toFloat(),
-                intArrayOf(Color.parseColor("#F609BC"), Color.parseColor("#E20AA6"), Color.parseColor("#FAB86D")),
+                topCardRect.left,
+                topCardRect.top,
+                topCardRect.left,
+                topCardRect.bottom,
+                intArrayOf(Color.parseColor("#E5E7EB"), Color.parseColor("#C6CBD4")),
                 null,
                 Shader.TileMode.CLAMP
             )
         }
-        val radius = w * 0.08f
-        canvas.drawRoundRect(RectF(0f, 0f, w.toFloat(), h.toFloat()), radius, radius, bgPaint)
+        canvas.drawRoundRect(topCardRect, w * 0.045f, w * 0.045f, topCardPaint)
+        val topCardBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = w * 0.006f
+            color = Color.parseColor("#7A8392")
+        }
+        canvas.drawRoundRect(topCardRect, w * 0.045f, w * 0.045f, topCardBorder)
 
-        val margin = w * 0.05f
         val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            textSize = w * 0.08f
+            color = Color.parseColor("#111827")
+            textSize = w * 0.082f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
         }
-        canvas.drawText("PILL PACK", w / 2f, margin + titlePaint.textSize, titlePaint)
+        canvas.drawText(
+            "DOSEVIA CALENDAR",
+            w / 2f,
+            topCardRect.top + topCardHeight * 0.48f,
+            titlePaint
+        )
 
         val cal = Calendar.getInstance().apply {
             set(year, month, 1, 0, 0, 0)
@@ -54,14 +85,14 @@ object WidgetCalendarBitmapRenderer {
         }
         val monthLabel = "${DateFormatSymbols.getInstance().months[month]} $year"
         val monthPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#FDE7FF")
+            color = Color.parseColor("#374151")
             textSize = w * 0.043f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
         }
-        canvas.drawText(monthLabel, w / 2f, margin + titlePaint.textSize + monthPaint.textSize + 8f, monthPaint)
+        canvas.drawText(monthLabel, w / 2f, topCardRect.bottom - topCardHeight * 0.14f, monthPaint)
 
-        val cardTop = margin + titlePaint.textSize + monthPaint.textSize + (h * 0.05f)
+        val cardTop = topCardRect.bottom + (h * 0.045f)
         val cardRect = RectF(margin, cardTop, w - margin, h - margin)
         val cardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#EFFFFFFF") }
         canvas.drawRoundRect(cardRect, w * 0.045f, w * 0.045f, cardPaint)
@@ -127,14 +158,6 @@ object WidgetCalendarBitmapRenderer {
             val textY = cy - (dayPaint.ascent() + dayPaint.descent()) / 2f
             canvas.drawText(day.toString(), cx, textY, dayPaint)
         }
-
-        val footerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            textSize = w * 0.038f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            textAlign = Paint.Align.LEFT
-        }
-        canvas.drawText("Missed this month: $missedCount", margin, h - margin * 0.3f, footerPaint)
 
         return bitmap
     }
