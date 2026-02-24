@@ -45,8 +45,8 @@ object WidgetCalendarBitmapRenderer {
             startX += step
         }
 
-        val margin = w * 0.04f
-        val topCardHeight = h * 0.16f
+        val margin = w * 0.05f
+        val topCardHeight = h * 0.22f
         val topCardRect = RectF(margin, margin, w - margin, margin + topCardHeight)
         val topCardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             shader = LinearGradient(
@@ -69,14 +69,14 @@ object WidgetCalendarBitmapRenderer {
 
         val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor("#111827")
-            textSize = w * 0.052f
+            textSize = w * 0.082f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
         }
         canvas.drawText(
-            "Dosevia Calendar",
+            "DOSEVIA CALENDAR",
             w / 2f,
-            topCardRect.top + topCardHeight * 0.56f,
+            topCardRect.top + topCardHeight * 0.48f,
             titlePaint
         )
 
@@ -87,13 +87,13 @@ object WidgetCalendarBitmapRenderer {
         val monthLabel = "${DateFormatSymbols.getInstance().months[month]} $year"
         val monthPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor("#374151")
-            textSize = w * 0.034f
+            textSize = w * 0.043f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
         }
-        canvas.drawText(monthLabel, w / 2f, topCardRect.bottom - topCardHeight * 0.16f, monthPaint)
+        canvas.drawText(monthLabel, w / 2f, topCardRect.bottom - topCardHeight * 0.14f, monthPaint)
 
-        val cardTop = topCardRect.bottom + (h * 0.02f)
+        val cardTop = topCardRect.bottom + (h * 0.045f)
         val cardRect = RectF(margin, cardTop, w - margin, h - margin)
         val cardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#EFFFFFFF") }
         canvas.drawRoundRect(cardRect, w * 0.045f, w * 0.045f, cardPaint)
