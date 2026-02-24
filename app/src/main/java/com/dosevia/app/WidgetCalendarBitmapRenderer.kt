@@ -107,6 +107,7 @@ object WidgetCalendarBitmapRenderer {
         }
         canvas.drawText(monthLabel, w / 2f, headerRect.bottom - headerHeight * 0.16f, monthPaint)
 
+        // Weekday row
         val weekdays = listOf("S", "M", "T", "W", "T", "F", "S")
         val weekPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor("#111827")
