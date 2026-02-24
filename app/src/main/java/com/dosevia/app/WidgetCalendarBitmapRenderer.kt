@@ -77,11 +77,12 @@ object WidgetCalendarBitmapRenderer {
         }
         canvas.drawText("Dosevia Calendar", w / 2f, headerRect.top + headerHeight * 0.56f, titlePaint)
 
-        val cal = Calendar.getInstance().apply {
+        val monthCal = Calendar.getInstance().apply {
             set(year, month, 1, 0, 0, 0)
             set(Calendar.MILLISECOND, 0)
         }
-        val monthLabel = "${DateFormatSymbols.getInstance().months[month]} $year"
+        val monthName = monthCal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault()) ?: ""
+        val monthLabel = "$monthName $year"
         val monthPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor("#374151")
             textSize = w * 0.033f
@@ -109,12 +110,8 @@ object WidgetCalendarBitmapRenderer {
             canvas.drawText(weekdays[i], cx, headerY, weekPaint)
         }
 
-        val cal = Calendar.getInstance().apply {
-            set(year, month, 1, 0, 0, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-        val firstDayOffset = cal.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY
-        val totalDays = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
+        val firstDayOffset = monthCal.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY
+        val totalDays = monthCal.getActualMaximum(Calendar.DAY_OF_MONTH)
 
         val gridTop = headerY + h * 0.04f
         val gridBottom = h - margin - h * 0.02f
