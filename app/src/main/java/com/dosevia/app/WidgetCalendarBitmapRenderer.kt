@@ -12,6 +12,7 @@ object WidgetCalendarBitmapRenderer {
     private const val MAX_W_DP = 360
     private const val MAX_H_DP = 320
 
+    @Suppress("UNUSED_PARAMETER")
     fun render(
         context: Context,
         year: Int,
