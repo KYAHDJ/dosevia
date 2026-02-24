@@ -12,6 +12,7 @@ object WidgetCalendarBitmapRenderer {
     private const val MAX_W_DP = 360
     private const val MAX_H_DP = 320
 
+    @Suppress("UNUSED_PARAMETER")
     fun render(
         context: Context,
         year: Int,
@@ -100,12 +101,12 @@ object WidgetCalendarBitmapRenderer {
         val weekdays = listOf("S", "M", "T", "W", "T", "F", "S")
         val weekPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor("#111827")
-            textSize = w * 0.032f
+            textSize = w * 0.029f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
         }
 
-        val contentPadding = w * 0.035f
+        val contentPadding = w * 0.026f
         val gridLeft = cardRect.left + contentPadding
         val gridRight = cardRect.right - contentPadding
         val headerY = cardRect.top + contentPadding + weekPaint.textSize
@@ -119,13 +120,13 @@ object WidgetCalendarBitmapRenderer {
         val firstDayOffset = cal.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY
         val totalDays = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
 
-        val gridTop = headerY + h * 0.018f
+        val gridTop = headerY + h * 0.012f
         val usableHeight = (cardRect.bottom - contentPadding) - gridTop
         val rowHeight = usableHeight / 6f
-        val pillRadius = (minOf(colWidth, rowHeight) * 0.38f)
+        val pillRadius = (minOf(colWidth, rowHeight) * 0.45f)
 
         val dayPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = pillRadius * 0.9f
+            textSize = pillRadius * 0.96f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
         }
