@@ -64,7 +64,6 @@ class PillWidgetCalendar : AppWidgetProvider() {
 
             val keyFmt = SimpleDateFormat("yyyy-MM-dd", Locale.US)
             val monthStatus = mutableMapOf<Int, PillStatus?>()
-            var missedCount = 0
 
             for (day in 1..daysInMonth) {
                 val dayCal = Calendar.getInstance().apply {
@@ -74,7 +73,6 @@ class PillWidgetCalendar : AppWidgetProvider() {
                 val key = keyFmt.format(dayCal.time)
                 val status = statusByDateKey[key]
                 monthStatus[day] = status
-                if (status == PillStatus.MISSED) missedCount++
             }
 
             val bitmap = runCatching {
@@ -83,7 +81,6 @@ class PillWidgetCalendar : AppWidgetProvider() {
                     year = year,
                     month = month,
                     dayStatus = monthStatus,
-                    missedCount = missedCount,
                     widthDp = minW,
                     heightDp = minH
                 )

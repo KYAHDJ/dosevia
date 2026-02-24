@@ -20,7 +20,6 @@ object WidgetCalendarBitmapRenderer {
         year: Int,
         month: Int,
         dayStatus: Map<Int, PillStatus?>,
-        missedCount: Int,
         widthDp: Int,
         heightDp: Int
     ): Bitmap {
