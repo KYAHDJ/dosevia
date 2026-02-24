@@ -139,11 +139,6 @@ object WidgetCalendarBitmapRenderer {
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
         }
-
-        val now = Calendar.getInstance()
-        val isCurrentMonth = now.get(Calendar.YEAR) == year && now.get(Calendar.MONTH) == month
-        val today = if (isCurrentMonth) now.get(Calendar.DAY_OF_MONTH) else -1
-
         for (day in 1..totalDays) {
             val slot = firstDayOffset + (day - 1)
             val row = slot / 7
@@ -173,22 +168,24 @@ object WidgetCalendarBitmapRenderer {
                 )
             }
 
-            outerPaint.color = palette.outer
-            innerPaint.shader = LinearGradient(
-                cx,
-                cy - pillRadius,
-                cx,
-                cy + pillRadius,
-                intArrayOf(palette.innerTop, palette.innerBottom),
-                null,
-                Shader.TileMode.CLAMP
-            )
+            val dayOuterPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = palette.outer
+            }
+            val dayInnerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                shader = LinearGradient(
+                    cx,
+                    cy - pillRadius,
+                    cx,
+                    cy + pillRadius,
+                    intArrayOf(palette.innerTop, palette.innerBottom),
+                    null,
+                    Shader.TileMode.CLAMP
+                )
+            }
             dayPaint.color = palette.text
 
-            canvas.drawCircle(cx, cy + pillRadius * 0.07f, pillRadius * 0.96f, shadowPaint)
-            canvas.drawCircle(cx, cy, pillRadius, outerPaint)
-            canvas.drawCircle(cx, cy, pillRadius * 0.78f, innerPaint)
-            innerPaint.shader = null
+            canvas.drawCircle(cx, cy, pillRadius, dayOuterPaint)
+            canvas.drawCircle(cx, cy, pillRadius * 0.78f, dayInnerPaint)
 
             val textY = cy - (dayPaint.ascent() + dayPaint.descent()) / 2f
             canvas.drawText(day.toString(), cx, textY, dayPaint)
