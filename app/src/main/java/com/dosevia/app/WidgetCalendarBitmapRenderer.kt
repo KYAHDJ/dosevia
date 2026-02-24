@@ -1,8 +1,16 @@
 package com.dosevia.app
 
 import android.content.Context
-import android.graphics.*
-import java.util.*
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.LinearGradient
+import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Shader
+import android.graphics.Typeface
+import java.util.Calendar
+import java.util.Locale
 
 object WidgetCalendarBitmapRenderer {
 
@@ -10,6 +18,13 @@ object WidgetCalendarBitmapRenderer {
     private const val MIN_H_DP = 170
     private const val MAX_W_DP = 360
     private const val MAX_H_DP = 320
+
+    private data class DayPalette(
+        val outer: Int,
+        val innerTop: Int,
+        val innerBottom: Int,
+        val text: Int
+    )
 
     @Suppress("UNUSED_PARAMETER")
     fun render(
@@ -62,12 +77,12 @@ object WidgetCalendarBitmapRenderer {
         }
         canvas.drawRoundRect(headerRect, headerCorner, headerCorner, headerPaint)
 
-        val headerBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        val headerBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
             strokeWidth = w * 0.006f
             color = Color.parseColor("#768194")
         }
-        canvas.drawRoundRect(headerRect, headerCorner, headerCorner, headerBorder)
+        canvas.drawRoundRect(headerRect, headerCorner, headerCorner, headerBorderPaint)
 
         val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor("#111827")
@@ -83,6 +98,7 @@ object WidgetCalendarBitmapRenderer {
         }
         val monthName = monthCal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault()) ?: ""
         val monthLabel = "$monthName $year"
+
         val monthPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor("#374151")
             textSize = w * 0.033f
@@ -136,25 +152,38 @@ object WidgetCalendarBitmapRenderer {
             val cx = gridLeft + col * colWidth + colWidth / 2f
             val cy = gridTop + row * rowHeight + rowHeight / 2f
 
-            val status = dayStatus[day]
-            val (outer, innerTop, innerBottom, text) = when (status) {
-                PillStatus.MISSED -> arrayOf("#DC2626", "#FB7185", "#F43F5E", "#FFFFFF")
-                PillStatus.TAKEN -> arrayOf("#374151", "#4B5563", "#1F2937", "#D1D5DB")
-                PillStatus.NOT_TAKEN -> arrayOf("#8C95A5", "#F8FAFC", "#D4DAE3", "#111827")
-                null -> arrayOf("#8C95A5", "#F8FAFC", "#D4DAE3", "#111827")
+            val palette = when (dayStatus[day]) {
+                PillStatus.MISSED -> DayPalette(
+                    outer = Color.parseColor("#DC2626"),
+                    innerTop = Color.parseColor("#FB7185"),
+                    innerBottom = Color.parseColor("#F43F5E"),
+                    text = Color.WHITE
+                )
+                PillStatus.TAKEN -> DayPalette(
+                    outer = Color.parseColor("#374151"),
+                    innerTop = Color.parseColor("#4B5563"),
+                    innerBottom = Color.parseColor("#1F2937"),
+                    text = Color.parseColor("#D1D5DB")
+                )
+                else -> DayPalette(
+                    outer = Color.parseColor("#8C95A5"),
+                    innerTop = Color.parseColor("#F8FAFC"),
+                    innerBottom = Color.parseColor("#D4DAE3"),
+                    text = Color.parseColor("#111827")
+                )
             }
 
-            outerPaint.color = Color.parseColor(outer)
+            outerPaint.color = palette.outer
             innerPaint.shader = LinearGradient(
                 cx,
                 cy - pillRadius,
                 cx,
                 cy + pillRadius,
-                intArrayOf(Color.parseColor(innerTop), Color.parseColor(innerBottom)),
+                intArrayOf(palette.innerTop, palette.innerBottom),
                 null,
                 Shader.TileMode.CLAMP
             )
-            dayPaint.color = Color.parseColor(text)
+            dayPaint.color = palette.text
 
             canvas.drawCircle(cx, cy + pillRadius * 0.07f, pillRadius * 0.96f, shadowPaint)
             canvas.drawCircle(cx, cy, pillRadius, outerPaint)
