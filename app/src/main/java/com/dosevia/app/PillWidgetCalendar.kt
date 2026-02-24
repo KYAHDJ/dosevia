@@ -99,9 +99,6 @@ class PillWidgetCalendar : AppWidgetProvider() {
                 WidgetCalendarBitmapRenderer.renderFallback(ctx)
             }
 
-            val views = RemoteViews(ctx.packageName, R.layout.pill_widget_calendar)
-            views.setImageViewBitmap(R.id.widgetCalendarImage, bitmap)
-
             val launchIntent = Intent(ctx, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
@@ -109,9 +106,29 @@ class PillWidgetCalendar : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             else PendingIntent.FLAG_UPDATE_CURRENT
             val pendingIntent = PendingIntent.getActivity(ctx, 2, launchIntent, piFlags)
-            views.setOnClickPendingIntent(R.id.widgetCalendarRoot, pendingIntent)
 
-            appWidgetManager.updateAppWidget(appWidgetId, views)
+            val views = createViews(ctx, bitmap, pendingIntent)
+
+            val updated = runCatching {
+                appWidgetManager.updateAppWidget(appWidgetId, views)
+            }.isSuccess
+
+            if (!updated) {
+                val safeFallback = WidgetCalendarBitmapRenderer.renderFallback(ctx)
+                val fallbackViews = createViews(ctx, safeFallback, pendingIntent)
+                runCatching { appWidgetManager.updateAppWidget(appWidgetId, fallbackViews) }
+            }
+        }
+
+        private fun createViews(
+            context: Context,
+            bitmap: android.graphics.Bitmap,
+            pendingIntent: PendingIntent
+        ): RemoteViews {
+            return RemoteViews(context.packageName, R.layout.pill_widget_calendar).apply {
+                setImageViewBitmap(R.id.widgetCalendarImage, bitmap)
+                setOnClickPendingIntent(R.id.widgetCalendarRoot, pendingIntent)
+            }
         }
 
         fun requestUpdate(context: Context) {
