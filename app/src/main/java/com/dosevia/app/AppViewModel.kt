@@ -62,6 +62,7 @@ class AppViewModel(private val context: Context) : ViewModel() {
         // Push correct data to widgets immediately on startup (catches NOT_TAKEN→MISSED corrections)
         PillWidget.requestUpdate(appContext)
         PillWidgetMedium.requestUpdate(appContext)
+        PillWidgetCalendar.requestUpdate(appContext)
     }
 
     // ── Date key helpers ──────────────────────────────────────────────────────
@@ -200,6 +201,7 @@ class AppViewModel(private val context: Context) : ViewModel() {
         _state.value = s.copy(days = days)
         PillWidget.requestUpdate(appContext)
         PillWidgetMedium.requestUpdate(appContext)
+        PillWidgetCalendar.requestUpdate(appContext)
     }
 
     private fun checkAlarmTakenFlag() {
@@ -279,6 +281,7 @@ class AppViewModel(private val context: Context) : ViewModel() {
             .commit()
         PillWidget.requestUpdate(appContext)
         PillWidgetMedium.requestUpdate(appContext)
+        PillWidgetCalendar.requestUpdate(appContext)
     }
 
     // ── Public actions ────────────────────────────────────────────────────────
@@ -320,6 +323,7 @@ class AppViewModel(private val context: Context) : ViewModel() {
         applyAlarm(_state.value.settings, updated)
         PillWidget.requestUpdate(appContext)
         PillWidgetMedium.requestUpdate(appContext)
+        PillWidgetCalendar.requestUpdate(appContext)
     }
 
     fun updateSettings(settings: ReminderSettings) {
