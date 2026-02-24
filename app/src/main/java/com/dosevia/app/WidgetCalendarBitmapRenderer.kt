@@ -91,6 +91,7 @@ object WidgetCalendarBitmapRenderer {
         }
         canvas.drawText(monthLabel, w / 2f, headerRect.bottom - headerHeight * 0.16f, monthPaint)
 
+        // Weekday row
         val weekdays = listOf("S", "M", "T", "W", "T", "F", "S")
         val weekPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor("#111827")
@@ -122,8 +123,10 @@ object WidgetCalendarBitmapRenderer {
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
         }
-        val outerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        val innerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+        val now = Calendar.getInstance()
+        val isCurrentMonth = now.get(Calendar.YEAR) == year && now.get(Calendar.MONTH) == month
+        val today = if (isCurrentMonth) now.get(Calendar.DAY_OF_MONTH) else -1
 
         for (day in 1..totalDays) {
             val slot = firstDayOffset + (day - 1)
@@ -153,6 +156,7 @@ object WidgetCalendarBitmapRenderer {
             )
             dayPaint.color = Color.parseColor(text)
 
+            canvas.drawCircle(cx, cy + pillRadius * 0.07f, pillRadius * 0.96f, shadowPaint)
             canvas.drawCircle(cx, cy, pillRadius, outerPaint)
             canvas.drawCircle(cx, cy, pillRadius * 0.78f, innerPaint)
             innerPaint.shader = null
