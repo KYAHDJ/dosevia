@@ -123,9 +123,12 @@ object WidgetCalendarBitmapRenderer {
 
         val firstDayOffset = cal.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY
         val totalDays = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
+        val totalSlots = firstDayOffset + totalDays
+        val rowCount = kotlin.math.ceil(totalSlots / 7f).toInt().coerceIn(4, 6)
 
         val gridTop = weekY + h * 0.04f
-        val rowHeight = (h - gridTop - h * 0.06f) / 5f
+        val bottomPad = h * 0.06f
+        val rowHeight = ((h - gridTop - bottomPad) / rowCount).coerceAtLeast(h * 0.1f)
         val pillRadius = minOf(colWidth, rowHeight) * 0.41f
 
         val outerPaint = Paint(Paint.ANTI_ALIAS_FLAG)

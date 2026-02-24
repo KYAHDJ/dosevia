@@ -64,6 +64,12 @@ class PillWidgetCalendar : AppWidgetProvider() {
 
             val keyFmt = SimpleDateFormat("yyyy-MM-dd", Locale.US)
             val monthStatus = mutableMapOf<Int, PillStatus?>()
+            val todayStartMs = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
 
             for (day in 1..daysInMonth) {
                 val dayCal = Calendar.getInstance().apply {
@@ -71,7 +77,12 @@ class PillWidgetCalendar : AppWidgetProvider() {
                     set(Calendar.MILLISECOND, 0)
                 }
                 val key = keyFmt.format(dayCal.time)
-                val status = statusByDateKey[key]
+                val storedStatus = statusByDateKey[key]
+                val status = storedStatus ?: if (dayCal.timeInMillis < todayStartMs) {
+                    PillStatus.MISSED
+                } else {
+                    null
+                }
                 monthStatus[day] = status
             }
 
