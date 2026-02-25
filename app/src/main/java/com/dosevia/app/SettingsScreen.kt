@@ -62,7 +62,8 @@ import java.io.File
 @Composable
 fun SettingsScreen(
     viewModel: AppViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigate: (Screen) -> Unit = {}
 ) {
     val state    by viewModel.state.collectAsState()
     val settings = state.settings
@@ -246,6 +247,16 @@ fun SettingsScreen(
 
                 // ── OTHER ─────────────────────────────────────────────────────
                 SettingsSection("OTHER", secLblSp) {
+                    SettingsChevronRow(
+                        icon    = Icons.Default.Widgets,
+                        iconBg  = Color(0xFF8B5CF6),
+                        title   = "Customize Widgets",
+                        sub     = "Preview small, medium, and calendar widget styles",
+                        enabled = true,
+                        onClick = { onNavigate(Screen.CUSTOMIZE_WIDGETS) },
+                        lblSp   = rowLblSp, subSp = rowSubSp
+                    )
+                    HorizontalDivider(color = Color(0xFFF3F4F6))
                     SettingsChevronRow(
                         icon    = Icons.Default.Info,
                         iconBg  = Color(0xFF6B7280),

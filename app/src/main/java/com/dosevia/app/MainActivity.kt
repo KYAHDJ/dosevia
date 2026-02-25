@@ -59,7 +59,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 
-enum class Screen { HOME, SETTINGS, HISTORY, NOTES }
+enum class Screen { HOME, SETTINGS, HISTORY, NOTES, CUSTOMIZE_WIDGETS }
 
 class MainActivity : ComponentActivity() {
 
@@ -232,9 +232,10 @@ fun DoseviaApp(activity: MainActivity) {
             ) { screen ->
                 when (screen) {
                     Screen.HOME     -> HomeScreen(viewModel, onNavigate = { currentScreen = it })
-                    Screen.SETTINGS -> SettingsScreen(viewModel, onBack = { currentScreen = Screen.HOME })
+                    Screen.SETTINGS -> SettingsScreen(viewModel, onBack = { currentScreen = Screen.HOME }, onNavigate = { currentScreen = it })
                     Screen.HISTORY  -> HistoryScreen(viewModel, onBack = { currentScreen = Screen.HOME })
                     Screen.NOTES    -> NotesScreen(viewModel, onBack = { currentScreen = Screen.HOME })
+                    Screen.CUSTOMIZE_WIDGETS -> CustomizeWidgetsScreen(onBack = { currentScreen = Screen.SETTINGS })
                 }
             }
 

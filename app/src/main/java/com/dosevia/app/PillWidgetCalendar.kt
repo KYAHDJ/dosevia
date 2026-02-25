@@ -9,6 +9,9 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.widget.RemoteViews
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonSerializer
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -37,6 +40,7 @@ class PillWidgetCalendar : AppWidgetProvider() {
 
         fun updateWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
             val ctx = context.applicationContext
+            val configPrefs = ctx.getSharedPreferences("dosevia_prefs", Context.MODE_PRIVATE)
             val statusPrefs = ctx.getSharedPreferences("dosevia_status", Context.MODE_PRIVATE)
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
 
@@ -52,6 +56,35 @@ class PillWidgetCalendar : AppWidgetProvider() {
             val year = cal.get(Calendar.YEAR)
             val month = cal.get(Calendar.MONTH)
             val daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
+
+            val pillTypeName = configPrefs.getString("pillType", PillType.TYPE_21_7.name) ?: PillType.TYPE_21_7.name
+            val pillType = try { PillType.valueOf(pillTypeName) } catch (_: Exception) { PillType.TYPE_21_7 }
+            val gson = GsonBuilder()
+                .registerTypeAdapter(Date::class.java, JsonDeserializer { json, _, _ ->
+                    try { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).parse(json.asString) }
+                    catch (_: Exception) { try { Date(json.asLong) } catch (_: Exception) { Date() } }
+                })
+                .registerTypeAdapter(Date::class.java, JsonSerializer<Date> { src, _, _ ->
+                    com.google.gson.JsonPrimitive(SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).format(src))
+                })
+                .create()
+            val customConfig = configPrefs.getString("customPillConfig", null)?.let {
+                try { gson.fromJson(it, CustomPillConfig::class.java) } catch (_: Exception) { null }
+            } ?: CustomPillConfig()
+            val config = getPillConfiguration(pillType, customConfig)
+            val savedStartMs = configPrefs.getLong("startDate", 0L)
+            val startDate = if (savedStartMs != 0L) Date(savedStartMs) else Date()
+            val startCal = Calendar.getInstance().apply {
+                time = startDate
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val endCal = Calendar.getInstance().apply {
+                timeInMillis = startCal.timeInMillis
+                add(Calendar.DAY_OF_MONTH, config.total - 1)
+            }
 
             val statusByDateKey = mutableMapOf<String, PillStatus>()
             for ((key, value) in statusPrefs.all) {
@@ -70,6 +103,11 @@ class PillWidgetCalendar : AppWidgetProvider() {
                 val dayCal = Calendar.getInstance().apply {
                     set(year, month, day, 0, 0, 0)
                     set(Calendar.MILLISECOND, 0)
+                }
+                val inRegimen = dayCal.timeInMillis in startCal.timeInMillis..endCal.timeInMillis
+                if (!inRegimen) {
+                    monthStatus[day] = null
+                    continue
                 }
                 val key = keyFmt.format(dayCal.time)
                 val status = statusByDateKey[key]

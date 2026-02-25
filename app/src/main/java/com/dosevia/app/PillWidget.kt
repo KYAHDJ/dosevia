@@ -52,15 +52,23 @@ class PillWidget : AppWidgetProvider() {
 
             val config     = getPillConfiguration(pillType, customConfig)
             val totalPills = config.total
+            val savedStartMs = configPrefs.getLong("startDate", 0L)
+            val startDate = if (savedStartMs != 0L) Date(savedStartMs) else Date()
 
-            // Count TAKEN by scanning statusPrefs keys directly — no JSON parsing needed
+            // Count TAKEN only inside the active regimen range starting from startDate.
             val keyFmt = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            val cal = Calendar.getInstance().apply {
+                time = startDate
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
             var takenPills = 0
-            val allStatus  = statusPrefs.all
-            for ((key, value) in allStatus) {
-                if (key.startsWith("status_") && value == PillStatus.TAKEN.name) {
-                    takenPills++
-                }
+            repeat(totalPills) {
+                val key = "status_${keyFmt.format(cal.time)}"
+                if (statusPrefs.getString(key, null) == PillStatus.TAKEN.name) takenPills++
+                cal.add(Calendar.DAY_OF_MONTH, 1)
             }
 
             val bitmap = WidgetBitmapRenderer.render(
