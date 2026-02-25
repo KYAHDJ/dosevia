@@ -5,6 +5,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,6 +37,10 @@ fun HomeScreen(viewModel: AppViewModel, onNavigate: (Screen) -> Unit = {}) {
     var showPillTypeModal     by remember { mutableStateOf(false) }
     var showCustomConfigModal by remember { mutableStateOf(false) }
     var showDatePicker        by remember { mutableStateOf(false) }
+
+    var showQuickNoteCard        by remember { mutableStateOf(false) }
+    var selectedQuickNote by remember { mutableStateOf<String?>(null) }
+    var customQuickNote   by remember { mutableStateOf("") }
 
     val headerGradient = Brush.linearGradient(listOf(Color(0xFFF609BC), Color(0xFFFAB86D)))
 
@@ -128,9 +134,42 @@ fun HomeScreen(viewModel: AppViewModel, onNavigate: (Screen) -> Unit = {}) {
                     .padding(vertical = 16.dp)
             ) {
 
+                QuickNotePromptCard(
+                    visible = showQuickNoteCard,
+                    selectedNote = selectedQuickNote,
+                    customNote = customQuickNote,
+                    generatedNotes = QUICK_NOTE_SUGGESTIONS,
+                    onSelectNote = { selectedQuickNote = it; customQuickNote = "" },
+                    onCustomNoteChange = { customQuickNote = it; selectedQuickNote = null },
+                    onDismiss = {
+                        showQuickNoteCard = false
+                        selectedQuickNote = null
+                        customQuickNote = ""
+                    },
+                    onSave = {
+                        val noteContent = (selectedQuickNote ?: customQuickNote).trim()
+                        if (noteContent.isNotEmpty()) {
+                            val now = Date()
+                            val time = SimpleDateFormat("h:mm a", Locale.getDefault()).format(now)
+                            viewModel.addNote(noteContent, now, time)
+                            showQuickNoteCard = false
+                            selectedQuickNote = null
+                            customQuickNote = ""
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = headerPadH)
+                )
+
+                Spacer(Modifier.height(10.dp))
+
                 SwipeableBlisterPacks(
                     days           = state.days,
-                    onStatusChange = { day, status -> viewModel.updateDayStatus(day, status) }
+                    onStatusChange = { day, status -> viewModel.updateDayStatus(day, status) },
+                    onPillTaken = {
+                        showQuickNoteCard = true
+                        selectedQuickNote = QUICK_NOTE_SUGGESTIONS.random()
+                        customQuickNote = ""
+                    }
                 )
 
                 Spacer(Modifier.height(16.dp))
@@ -225,6 +264,178 @@ fun HomeScreen(viewModel: AppViewModel, onNavigate: (Screen) -> Unit = {}) {
         )
     }
 }
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun QuickNotePromptCard(
+    visible: Boolean,
+    selectedNote: String?,
+    customNote: String,
+    generatedNotes: List<String>,
+    onSelectNote: (String) -> Unit,
+    onCustomNoteChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (!visible) return
+
+    val canSave = (selectedNote ?: customNote).orEmpty().trim().isNotEmpty()
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White.copy(alpha = 0.94f))
+            .border(1.dp, PinkPrimary.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
+            .padding(12.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clip(CircleShape)
+                            .background(Brush.linearGradient(listOf(PinkPrimary, OrangeAccent)))
+                    ) {
+                        Icon(Icons.Default.Mood, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        "Quick note",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = PinkDark
+                    )
+                }
+
+                IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
+                    Icon(Icons.Default.Close, null, tint = Color(0xFF9CA3AF), modifier = Modifier.size(16.dp))
+                }
+            }
+
+            Text(
+                "Want to log how you feel after taking your pill?",
+                fontSize = 12.sp,
+                color = Color(0xFF4B5563)
+            )
+
+            val displayedSuggestions = remember(generatedNotes, selectedNote) {
+                if (generatedNotes.isEmpty()) emptyList() else {
+                    val pool = generatedNotes.shuffled().take(5).toMutableList()
+                    if (selectedNote != null && selectedNote !in pool) {
+                        if (pool.size >= 5) pool[pool.lastIndex] = selectedNote else pool.add(selectedNote)
+                    }
+                    pool
+                }
+            }
+
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                displayedSuggestions.forEach { suggestion ->
+                    val isSelected = suggestion == selectedNote
+                    SuggestionChip(
+                        onClick = { onSelectNote(suggestion) },
+                        label = { Text(suggestion, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        selected = isSelected,
+                        colors = SuggestionChipDefaults.suggestionChipColors(
+                            containerColor = if (isSelected) PinkPrimary.copy(alpha = 0.15f) else Color(0xFFF9FAFB),
+                            labelColor = if (isSelected) PinkDark else Color(0xFF4B5563)
+                        )
+                    )
+                }
+            }
+
+            OutlinedTextField(
+                value = customNote,
+                onValueChange = onCustomNoteChange,
+                placeholder = { Text("Or write your own quick note…", fontSize = 12.sp) },
+                minLines = 2,
+                maxLines = 3,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PinkPrimary,
+                    focusedContainerColor = Color(0xFFFFF9FC),
+                    unfocusedContainerColor = Color(0xFFFFF9FC)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                TextButton(onClick = onDismiss) { Text("Dismiss") }
+                Spacer(Modifier.width(6.dp))
+                Button(
+                    onClick = onSave,
+                    enabled = canSave,
+                    colors = ButtonDefaults.buttonColors(containerColor = PinkPrimary)
+                ) {
+                    Text("Save")
+                }
+            }
+        }
+    }
+}
+
+private val QUICK_NOTE_SUGGESTIONS = listOf(
+    "Feeling good and energized today 😄",
+    "A little sleepy, but I took it ✅",
+    "Mild headache today 🤕",
+    "Feeling calm and steady 🌿",
+    "Bit nauseous this morning 🤢",
+    "Happy mood all day 😊",
+    "Slight cramps, manageable 💛",
+    "Feeling anxious today 😟",
+    "No side effects so far 🙌",
+    "Very focused and productive 💪",
+    "Felt dizzy for a short while 😵",
+    "Hydrated and feeling better 💧",
+    "Mood swings today 🎭",
+    "Feeling hopeful and positive ✨",
+    "Low energy this afternoon 💤",
+    "Everything feels normal today 👍",
+    "Stomach felt weird after lunch 🍽️",
+    "Feeling confident and in control 🌸",
+    "A bit emotional today 🥺",
+    "Great day overall, feeling strong 🌞",
+    "I feel sick with a cold today 🤒",
+    "Mild bloating noted 🎈",
+    "Feeling relieved I stayed on track 🗓️",
+    "Slight breast tenderness today 💗",
+    "Feeling social and cheerful 🎉",
+    "A little stressed from work 😣",
+    "Noticed spotting today 🩸",
+    "Feeling peaceful tonight 🌙",
+    "Body feels heavy today 🪨",
+    "Feeling playful and upbeat 😋",
+    "Had cravings but doing okay 🍫",
+    "Proud of my consistency 🏅",
+    "Back pain was noticeable today 🧍",
+    "Feeling sensitive and teary 😢",
+    "Clear mind and stable mood 🧠",
+    "Felt faint for a moment, now okay ⚠️",
+    "Feeling grateful for my progress 🙏",
+    "A little irritable this evening 😤",
+    "No pain today, feeling free 🕊️",
+    "Feeling under the weather 🤧",
+    "Strong and motivated today 🚀",
+    "Had acne flare-up today 😬",
+    "Feeling balanced and refreshed 🌈",
+    "Tired but still committed 💊",
+    "Slight nausea but manageable 🌼",
+    "Mood improved after resting 🛌",
+    "Feeling extra hungry today 🍜",
+    "Feeling optimistic about this cycle 📈",
+    "Had trouble sleeping last night 🌃",
+    "Feeling okay, one day at a time 🤍"
+)
 
 @Composable
 private fun HeaderCard(
