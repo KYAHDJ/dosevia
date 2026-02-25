@@ -374,11 +374,11 @@ private fun QuickNotePromptCard(
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 displayedSuggestions.forEach { suggestion ->
                     val isSelected = suggestion == selectedNote
-                    SuggestionChip(
+                    FilterChip(
                         onClick = { onSelectNote(suggestion) },
                         label = { Text(suggestion, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         selected = isSelected,
-                        colors = SuggestionChipDefaults.suggestionChipColors(
+                        colors = FilterChipDefaults.filterChipColors(
                             containerColor = if (isSelected) PinkPrimary.copy(alpha = 0.15f) else Color(0xFFF9FAFB),
                             labelColor = if (isSelected) PinkDark else Color(0xFF4B5563)
                         )
