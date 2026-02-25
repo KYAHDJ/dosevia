@@ -4,5 +4,6 @@
     android:minHeight="110dp"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/pill_widget"
+    android:previewLayout="@layout/pill_widget"
     android:resizeMode="none"
     android:widgetCategory="home_screen" />
