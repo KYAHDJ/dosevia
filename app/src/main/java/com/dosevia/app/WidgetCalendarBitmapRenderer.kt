@@ -121,11 +121,6 @@ object WidgetCalendarBitmapRenderer {
         val headerY = headerRect.bottom + h * 0.085f
         val colWidth = (gridRight - gridLeft) / 7f
 
-        for (i in weekdays.indices) {
-            val cx = gridLeft + i * colWidth + colWidth / 2f
-            canvas.drawText(weekdays[i], cx, headerY, weekPaint)
-        }
-
         val firstDayOffset = monthCal.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY
         val totalDays = monthCal.getActualMaximum(Calendar.DAY_OF_MONTH)
 
@@ -133,6 +128,29 @@ object WidgetCalendarBitmapRenderer {
         val gridBottom = h - margin - h * 0.02f
         val rowHeight = (gridBottom - gridTop) / 6f
         val pillRadius = minOf(colWidth, rowHeight) * 0.45f
+
+        val calendarPanelRect = RectF(
+            margin + w * 0.008f,
+            headerY - h * 0.055f,
+            w - margin - w * 0.008f,
+            gridBottom + h * 0.015f
+        )
+        val calendarPanelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#F2FFFFFF")
+        }
+        val calendarPanelBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = w * 0.004f
+            color = Color.parseColor("#AAB4C3")
+        }
+        val panelCorner = w * 0.04f
+        canvas.drawRoundRect(calendarPanelRect, panelCorner, panelCorner, calendarPanelPaint)
+        canvas.drawRoundRect(calendarPanelRect, panelCorner, panelCorner, calendarPanelBorder)
+
+        for (i in weekdays.indices) {
+            val cx = gridLeft + i * colWidth + colWidth / 2f
+            canvas.drawText(weekdays[i], cx, headerY, weekPaint)
+        }
 
         val dayPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textSize = pillRadius * 0.96f
