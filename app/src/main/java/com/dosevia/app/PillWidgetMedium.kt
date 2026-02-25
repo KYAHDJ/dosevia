@@ -63,16 +63,25 @@ class PillWidgetMedium : AppWidgetProvider() {
 
             val config     = getPillConfiguration(pillType, customConfig)
             val totalPills = config.total
+            val savedStartMs = configPrefs.getLong("startDate", 0L)
+            val startDate = if (savedStartMs != 0L) Date(savedStartMs) else Date()
 
             var takenPills  = 0
             var missedPills = 0
-            for ((key, value) in statusPrefs.all) {
-                if (key.startsWith("status_")) {
-                    when (value) {
-                        PillStatus.TAKEN.name  -> takenPills++
-                        PillStatus.MISSED.name -> missedPills++
-                    }
+            val keyFmt = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            val cal = Calendar.getInstance().apply {
+                time = startDate
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            repeat(totalPills) {
+                when (statusPrefs.getString("status_${keyFmt.format(cal.time)}", null)) {
+                    PillStatus.TAKEN.name  -> takenPills++
+                    PillStatus.MISSED.name -> missedPills++
                 }
+                cal.add(Calendar.DAY_OF_MONTH, 1)
             }
 
             // Get current widget size in dp so bitmap scales with resize
