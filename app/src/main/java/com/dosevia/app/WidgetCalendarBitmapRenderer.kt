@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
@@ -43,9 +44,15 @@ object WidgetCalendarBitmapRenderer {
         val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 
-        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#EC2BAA") }
         val radius = w * 0.08f
-        canvas.drawRoundRect(RectF(0f, 0f, w.toFloat(), h.toFloat()), radius, radius, bgPaint)
+        val outerRect = RectF(0f, 0f, w.toFloat(), h.toFloat())
+        val clipPath = Path().apply { addRoundRect(outerRect, radius, radius, Path.Direction.CW) }
+
+        canvas.save()
+        canvas.clipPath(clipPath)
+
+        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#EC2BAA") }
+        canvas.drawRoundRect(outerRect, radius, radius, bgPaint)
 
         val stripePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor("#F74CC0")
@@ -208,6 +215,8 @@ object WidgetCalendarBitmapRenderer {
             val textY = cy - (dayPaint.ascent() + dayPaint.descent()) / 2f
             canvas.drawText(day.toString(), cx, textY, dayPaint)
         }
+
+        canvas.restore()
 
         return bitmap
     }
