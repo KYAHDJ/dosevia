@@ -236,6 +236,41 @@ fun HomeScreen(viewModel: AppViewModel, onNavigate: (Screen) -> Unit = {}) {
                         iconSize = quickIconSize, fontSp = quickFontSp) { onNavigate(Screen.NOTES) }
                 }
 
+                Spacer(Modifier.height(14.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = headerPadH)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White)
+                        .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(16.dp))
+                        .padding(12.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                "Widget styles",
+                                fontSize = cardLabelSp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF111827)
+                            )
+                            TextButton(onClick = { onNavigate(Screen.CUSTOMIZE_WIDGETS) }) {
+                                Text("Customize")
+                            }
+                        }
+                        WidgetPreviewSelector(
+                            onSmallClick = { onNavigate(Screen.CUSTOMIZE_WIDGETS) },
+                            onMediumClick = { onNavigate(Screen.CUSTOMIZE_WIDGETS) },
+                            onCalendarClick = { onNavigate(Screen.CUSTOMIZE_WIDGETS) }
+                        )
+                    }
+                }
+
                 Spacer(Modifier.height(24.dp))
             }
         }
