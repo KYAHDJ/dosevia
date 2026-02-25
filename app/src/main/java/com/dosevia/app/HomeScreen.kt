@@ -374,26 +374,15 @@ private fun QuickNotePromptCard(
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 displayedSuggestions.forEach { suggestion ->
                     val isSelected = suggestion == selectedNote
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(100.dp))
-                            .background(if (isSelected) PinkPrimary.copy(alpha = 0.15f) else Color(0xFFF9FAFB))
-                            .border(
-                                width = 1.dp,
-                                color = if (isSelected) PinkPrimary.copy(alpha = 0.5f) else Color(0xFFE5E7EB),
-                                shape = RoundedCornerShape(100.dp)
-                            )
-                            .clickable { onSelectNote(suggestion) }
-                            .padding(horizontal = 12.dp, vertical = 7.dp)
-                    ) {
-                        Text(
-                            suggestion,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            fontSize = 12.sp,
-                            color = if (isSelected) PinkDark else Color(0xFF4B5563)
+                    SuggestionChip(
+                        onClick = { onSelectNote(suggestion) },
+                        label = { Text(suggestion, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        selected = isSelected,
+                        colors = SuggestionChipDefaults.suggestionChipColors(
+                            containerColor = if (isSelected) PinkPrimary.copy(alpha = 0.15f) else Color(0xFFF9FAFB),
+                            labelColor = if (isSelected) PinkDark else Color(0xFF4B5563)
                         )
-                    }
+                    )
                 }
             }
 
