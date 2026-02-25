@@ -8,6 +8,6 @@
     android:maxResizeHeight="320dp"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/pill_widget_calendar"
-    android:previewLayout="@layout/pill_widget_preview_calendar"
+    android:previewLayout="@layout/pill_widget_calendar"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen" />
