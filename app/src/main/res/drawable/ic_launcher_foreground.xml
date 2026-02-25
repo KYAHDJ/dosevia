@@ -5,39 +5,45 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Centered ribbon-heart mark (kept inside adaptive safe zone) -->
-    <group
-        android:translateX="6"
-        android:translateY="8"
-        android:scaleX="0.89"
-        android:scaleY="0.89">
+    <!-- Ribbon heart (blue left loop) -->
+    <path
+        android:fillColor="#5A95EC"
+        android:pathData="M54,30 L43.4,40.5 L30.9,28 C23.7,20.8 12.2,20.8 5,28 C-2.2,35.2 -2.2,46.8 5,54 L30.3,79.3 L44.4,65.2 L19.1,39.9 C17.5,38.3 17.5,35.7 19.1,34.1 C20.7,32.5 23.3,32.5 24.9,34.1 L39.2,48.4 Z" />
 
-        <path
-            android:fillColor="#4B8EF7"
-            android:pathData="M48,15 C36,3 16,4 8,17 C0,30 2,47 13,57 L45,88 L57,76 L25,45 C19,39 18,30 23,24 C28,18 37,19 42,24 L48,30 L61,17 Z" />
+    <!-- Ribbon heart (pink right loop) -->
+    <path
+        android:fillColor="#F458AF"
+        android:pathData="M54,30 L64.6,40.5 L77.1,28 C84.3,20.8 95.8,20.8 103,28 C110.2,35.2 110.2,46.8 103,54 L77.7,79.3 L63.6,65.2 L88.9,39.9 C90.5,38.3 90.5,35.7 88.9,34.1 C87.3,32.5 84.7,32.5 83.1,34.1 L68.8,48.4 Z" />
 
-        <path
-            android:fillColor="#F656B6"
-            android:pathData="M48,15 L35,28 L48,41 L66,27 C71,23 79,23 84,28 C89,33 88,41 82,47 L51,78 L63,90 L95,58 C106,47 108,30 100,17 C92,4 72,3 60,15 Z" />
+    <!-- Bottom ribbon body -->
+    <path
+        android:fillColor="#A450DB"
+        android:pathData="M30.3,79.3 L44.4,65.2 L54,74.8 L63.6,65.2 L77.7,79.3 L58.8,98.2 C56.2,100.8 51.8,100.8 49.2,98.2 Z" />
 
-        <path
-            android:fillColor="#9B4BDB"
-            android:pathData="M35,28 L21,42 L51,73 L82,47 L96,61 L63,94 C55,102 42,102 34,94 L2,61 L16,47 L45,76 L66,55 Z" />
+    <!-- Overlap accents to mimic gradient blend -->
+    <path
+        android:fillColor="#7C5BE5"
+        android:pathData="M39.2,48.4 L54,63.2 L44.4,65.2 L30.3,79.3 L24.2,73.2 Z" />
+    <path
+        android:fillColor="#C350CD"
+        android:pathData="M68.8,48.4 L54,63.2 L63.6,65.2 L77.7,79.3 L83.8,73.2 Z" />
 
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M24,48 C26,45 30,44 34,46 L45,52 L66,33 C69,30 74,30 77,33 C80,36 80,41 77,44 L52,69 C49,72 45,73 41,71 C39,70 38,69 36,67 L24,52 C22,50 22,50 24,48 Z" />
+    <!-- White check mark -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34.8,53.4 C36.8,51.4 40.1,51.2 42.3,52.9 L53.4,61.4 L74,40.8 C76.5,38.3 80.5,38.3 83,40.8 C85.5,43.3 85.5,47.3 83,49.8 L58.7,74.1 C56.4,76.4 52.8,76.7 50.2,74.7 L34.9,62.9 C31.9,60.6 31.8,56.3 34.8,53.4 Z" />
 
-        <path
-            android:fillColor="#E25BCB"
-            android:pathData="M90,12 L93,18 L99,21 L93,24 L90,30 L87,24 L81,21 L87,18 Z" />
-
-        <path
-            android:fillColor="#8F6DFF"
-            android:pathData="M99,24 L101,28 L105,30 L101,32 L99,36 L97,32 L93,30 L97,28 Z" />
-
-        <path
-            android:fillColor="#63A8FF"
-            android:pathData="M8,60 L10,65 L15,67 L10,69 L8,74 L6,69 L1,67 L6,65 Z" />
-    </group>
+    <!-- Sparkles -->
+    <path
+        android:fillColor="#EB4DC3"
+        android:pathData="M92,18 L94.2,22.8 L99,25 L94.2,27.2 L92,32 L89.8,27.2 L85,25 L89.8,22.8 Z" />
+    <path
+        android:fillColor="#9F67EC"
+        android:pathData="M101,22.5 L102.5,26 L106,27.5 L102.5,29 L101,32.5 L99.5,29 L96,27.5 L99.5,26 Z" />
+    <path
+        android:fillColor="#63A2F7"
+        android:pathData="M16,57 L18.2,61.8 L23,64 L18.2,66.2 L16,71 L13.8,66.2 L9,64 L13.8,61.8 Z" />
+    <path
+        android:fillColor="#EB4DC3"
+        android:pathData="M23,61 L24.5,64.5 L28,66 L24.5,67.5 L23,71 L21.5,67.5 L18,66 L21.5,64.5 Z" />
 </vector>
