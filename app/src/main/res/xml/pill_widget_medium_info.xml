@@ -8,5 +8,6 @@
     android:maxResizeHeight="250dp"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/pill_widget_medium"
+    android:previewLayout="@layout/pill_widget_preview_medium"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen" />
