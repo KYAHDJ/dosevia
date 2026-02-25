@@ -5,26 +5,32 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Full pill capsule white body -->
+    <path
+        android:fillColor="#4F8BEA"
+        android:pathData="M29,26c-9,0 -16,7 -16,16 0,7 3,11 7,15l31,31c2,2 5,3 8,3 3,0 6,-1 8,-3l28,-28c5,-5 8,-10 8,-18 0,-9 -7,-16 -16,-16 -6,0 -11,2 -16,6L54,43 45,35c-5,-6 -10,-9 -16,-9z" />
+
+    <path
+        android:fillColor="#F454A8"
+        android:pathData="M54,43l17,-11c5,-4 10,-6 16,-6 9,0 16,7 16,16 0,8 -3,13 -8,18L67,88c-2,2 -5,3 -8,3 -2,0 -4,-1 -6,-2l8,-8 22,-22c4,-4 6,-8 6,-13 0,-6 -5,-11 -11,-11 -4,0 -7,1 -11,4L54,48z" />
+
+    <path
+        android:fillColor="#A34AD6"
+        android:pathData="M32,55l21,34c2,1 4,2 6,2 3,0 6,-1 8,-3l20,-20 -20,-20L54,57 45,49z" />
+
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,30 A24,24 0 0 0 30,54 A24,24 0 0 0 54,78 L78,78 A24,24 0 0 0 78,30 Z"/>
+        android:pathData="M44,60c-1,0 -2,0 -3,1 -2,2 -2,5 0,7l12,11c2,2 5,2 7,0l23,-23c2,-2 2,-5 0,-7 -2,-2 -5,-2 -7,0L57,68 48,61c-1,-1 -2,-1 -4,-1z" />
 
-    <!-- Left half pink overlay -->
     <path
-        android:fillColor="#F609BC"
-        android:fillAlpha="0.80"
-        android:pathData="M54,30 A24,24 0 0 0 30,54 A24,24 0 0 0 54,78 Z"/>
+        android:fillColor="#E84EC4"
+        android:pathData="M88,20l2,4 4,2 -4,2 -2,4 -2,-4 -4,-2 4,-2z" />
 
-    <!-- Center divider line (path, not rect) -->
     <path
-        android:fillColor="#F609BC"
-        android:pathData="M52,30 L56,30 L56,78 L52,78 Z"/>
+        android:fillColor="#9B5CF0"
+        android:pathData="M98,28l1.5,3 3,1.5 -3,1.5 -1.5,3 -1.5,-3 -3,-1.5 3,-1.5z" />
 
-    <!-- Shine highlight -->
     <path
-        android:fillColor="#FFFFFF"
-        android:fillAlpha="0.45"
-        android:pathData="M36,38 Q44,32 52,36 Q46,40 36,38 Z"/>
+        android:fillColor="#5CA4F1"
+        android:pathData="M21,63l1.5,3 3,1.5 -3,1.5 -1.5,3 -1.5,-3 -3,-1.5 3,-1.5z" />
 
 </vector>
