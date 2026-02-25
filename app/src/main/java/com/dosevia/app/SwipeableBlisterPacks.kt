@@ -42,7 +42,8 @@ val PACK_SCHEMES = listOf(
 @Composable
 fun SwipeableBlisterPacks(
     days: List<DayData>,
-    onStatusChange: (Int, PillStatus) -> Unit
+    onStatusChange: (Int, PillStatus) -> Unit,
+    onPillTaken: (DayData) -> Unit = {}
 ) {
     val pillsPerPack = 28
     val totalPacks   = maxOf(1, (days.size + pillsPerPack - 1) / pillsPerPack)
@@ -236,6 +237,7 @@ fun SwipeableBlisterPacks(
             onComplete = {
                 val taken = animatingDay!!
                 onStatusChange(taken.day, PillStatus.TAKEN)
+                onPillTaken(taken)
                 animatingDay = null
             }
         )
