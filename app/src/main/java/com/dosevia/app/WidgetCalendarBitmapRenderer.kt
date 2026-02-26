@@ -36,7 +36,10 @@ object WidgetCalendarBitmapRenderer {
         missedCount: Int,
         widthDp: Int,
         heightDp: Int,
-        theme: WidgetThemeColors
+        theme: WidgetThemeColors,
+        todayDay: Int,
+        todayIndicatorColor: Int,
+        todayPulseScale: Float
     ): Bitmap {
         val dm = context.resources.displayMetrics
         val w = (widthDp.coerceIn(MIN_W_DP, MAX_W_DP) * dm.density).toInt()
@@ -133,7 +136,7 @@ object WidgetCalendarBitmapRenderer {
         val totalDays = monthCal.getActualMaximum(Calendar.DAY_OF_MONTH)
 
         val gridTop = headerY + h * 0.04f
-        val gridBottom = h - margin - h * 0.02f
+        val gridBottom = h - margin - h * 0.24f
         val rowHeight = (gridBottom - gridTop) / 6f
         val pillRadius = minOf(colWidth, rowHeight) * 0.45f
 
@@ -209,6 +212,15 @@ object WidgetCalendarBitmapRenderer {
                 )
             }
             dayPaint.color = palette.text
+
+
+            if (day == todayDay) {
+                val pulsePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = todayIndicatorColor
+                    alpha = 90
+                }
+                canvas.drawCircle(cx, cy, pillRadius * 1.2f * todayPulseScale, pulsePaint)
+            }
 
             canvas.drawCircle(cx, cy, pillRadius, dayOuterPaint)
             canvas.drawCircle(cx, cy, pillRadius * 0.78f, dayInnerPaint)

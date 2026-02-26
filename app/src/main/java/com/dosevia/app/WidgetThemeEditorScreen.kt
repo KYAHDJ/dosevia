@@ -28,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -60,6 +61,13 @@ fun WidgetThemeEditorScreen(
 
     val currentTheme = state.widgetThemes.forKind(widgetKind)
     var editingKey by remember { mutableStateOf<String?>(null) }
+    val calendarUiPrefs = loadCalendarWidgetUiPrefs(context)
+
+    fun updateCalendarUiPrefs(update: (CalendarWidgetUiPrefs) -> CalendarWidgetUiPrefs) {
+        if (widgetKind != WidgetKind.CALENDAR) return
+        saveCalendarWidgetUiPrefs(context, update(loadCalendarWidgetUiPrefs(context)))
+        PillWidgetCalendar.requestUpdate(context)
+    }
 
     val themedBitmap = remember(state.days, state.pillType, currentTheme, widgetKind) {
         when (widgetKind) {
@@ -79,18 +87,24 @@ fun WidgetThemeEditorScreen(
                 heightDp = 150,
                 theme = currentTheme
             )
-            WidgetKind.CALENDAR -> WidgetCalendarBitmapRenderer.render(
-                context = context,
-                year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR),
-                month = java.util.Calendar.getInstance().get(java.util.Calendar.MONTH),
-                dayStatus = state.days.associate { d ->
-                    java.util.Calendar.getInstance().apply { time = d.date }.get(java.util.Calendar.DAY_OF_MONTH) to d.status
-                },
-                missedCount = state.days.count { it.status == PillStatus.MISSED },
-                widthDp = 320,
-                heightDp = 230,
-                theme = currentTheme
-            )
+            WidgetKind.CALENDAR -> {
+                val uiPrefs = loadCalendarWidgetUiPrefs(context)
+                WidgetCalendarBitmapRenderer.render(
+                    context = context,
+                    year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR),
+                    month = java.util.Calendar.getInstance().get(java.util.Calendar.MONTH),
+                    dayStatus = state.days.associate { d ->
+                        java.util.Calendar.getInstance().apply { time = d.date }.get(java.util.Calendar.DAY_OF_MONTH) to d.status
+                    },
+                    missedCount = state.days.count { it.status == PillStatus.MISSED },
+                    widthDp = 320,
+                    heightDp = 230,
+                    theme = currentTheme,
+                    todayDay = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_MONTH),
+                    todayIndicatorColor = uiPrefs.todayIndicatorColor,
+                    todayPulseScale = 1f
+                )
+            }
         }
     }
 
@@ -146,6 +160,27 @@ fun WidgetThemeEditorScreen(
                 ColorRow("Primary text color", currentTheme.textPrimary) { editingKey = "textPrimary" }
                 ColorRow("Secondary text color", currentTheme.textSecondary) { editingKey = "textSecondary" }
 
+                if (widgetKind == WidgetKind.CALENDAR) {
+                    ToggleRow(
+                        label = "Show quick buttons",
+                        checked = calendarUiPrefs.showActionButtons,
+                        onChange = { checked ->
+                            updateCalendarUiPrefs { it.copy(showActionButtons = checked) }
+                        }
+                    )
+                    ToggleRow(
+                        label = "Pulse today indicator",
+                        checked = calendarUiPrefs.todayPulseEnabled,
+                        onChange = { checked ->
+                            updateCalendarUiPrefs { it.copy(todayPulseEnabled = checked) }
+                        }
+                    )
+                    ColorRow("Taken button color", calendarUiPrefs.takenButtonBackgroundColor) { editingKey = "takenButton" }
+                    ColorRow("Not taken button color", calendarUiPrefs.notTakenButtonBackgroundColor) { editingKey = "notTakenButton" }
+                    ColorRow("Button text color", calendarUiPrefs.buttonTextColor) { editingKey = "buttonText" }
+                    ColorRow("Today indicator color", calendarUiPrefs.todayIndicatorColor) { editingKey = "todayIndicator" }
+                }
+
                 OutlinedButton(
                     onClick = { viewModel.updateWidgetTheme(widgetKind, defaultWidgetThemeSettings().forKind(widgetKind)) },
                     modifier = Modifier.fillMaxWidth()
@@ -162,12 +197,25 @@ fun WidgetThemeEditorScreen(
             "accent1" -> currentTheme.accent1
             "accent2" -> currentTheme.accent2
             "textPrimary" -> currentTheme.textPrimary
+            "takenButton" -> calendarUiPrefs.takenButtonBackgroundColor
+            "notTakenButton" -> calendarUiPrefs.notTakenButtonBackgroundColor
+            "buttonText" -> calendarUiPrefs.buttonTextColor
+            "todayIndicator" -> calendarUiPrefs.todayIndicatorColor
             else -> currentTheme.textSecondary
         }
         ColorPickerDialog(
             initialColor = current,
             onDismiss = { editingKey = null },
-            onConfirm = { updateColor(key, it); editingKey = null }
+            onConfirm = { color ->
+                when (key) {
+                    "takenButton" -> updateCalendarUiPrefs { it.copy(takenButtonBackgroundColor = color) }
+                    "notTakenButton" -> updateCalendarUiPrefs { it.copy(notTakenButtonBackgroundColor = color) }
+                    "buttonText" -> updateCalendarUiPrefs { it.copy(buttonTextColor = color) }
+                    "todayIndicator" -> updateCalendarUiPrefs { it.copy(todayIndicatorColor = color) }
+                    else -> updateColor(key, color)
+                }
+                editingKey = null
+            }
         )
     }
 }
@@ -186,6 +234,20 @@ private fun ColorRow(label: String, colorInt: Int, onChange: () -> Unit) {
                 Spacer(Modifier.size(10.dp))
                 Button(onClick = onChange) { Text("Change") }
             }
+        }
+    }
+}
+
+@Composable
+private fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(14.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(label, color = Color(0xFF111827))
+            Switch(checked = checked, onCheckedChange = onChange)
         }
     }
 }
