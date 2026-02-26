@@ -50,5 +50,10 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.google.api.services.drive)
+    implementation(libs.google.api.client.android)
+    implementation(libs.coil.compose)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.play.services.auth)
     debugImplementation(libs.androidx.ui.tooling)
 }

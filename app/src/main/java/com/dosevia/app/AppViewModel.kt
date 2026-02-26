@@ -196,6 +196,11 @@ class AppViewModel(private val context: Context) : ViewModel() {
      * Re-runs buildDays so any NOT_TAKEN days that crossed midnight are
      * corrected to MISSED, then pushes fresh data to both widgets.
      */
+    fun reloadFromPrefs() {
+        loadState()
+        refreshWidgets()
+    }
+
     fun refreshWidgets() {
         val s    = _state.value
         val days = buildDays(s.pillType, s.startDate, s.customPillConfig)

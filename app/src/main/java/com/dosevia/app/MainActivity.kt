@@ -28,9 +28,11 @@ import android.os.PowerManager
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -186,9 +188,29 @@ fun DoseviaApp(activity: MainActivity) {
             val viewModel: AppViewModel = viewModel(
                 factory = AppViewModelFactory(activity.applicationContext)
             )
+            val context = LocalContext.current
+            val authManager = remember { GoogleAuthManager(context.applicationContext) }
+            val cloudSyncManager = remember { CloudSyncManager(context.applicationContext) }
+            var accountUiState by remember { mutableStateOf(authManager.getLastSignedInAccountUiState()) }
+
+            val signInLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == android.app.Activity.RESULT_OK) {
+                    val signInResult = authManager.handleSignInResult(result.data)
+                    signInResult.onSuccess {
+                        accountUiState = authManager.getLastSignedInAccountUiState()
+                        cloudSyncManager.runInitialSync(onRestored = { viewModel.reloadFromPrefs() })
+                    }
+                }
+            }
 
             var currentScreen by remember { mutableStateOf(Screen.HOME) }
             var selectedWidget by remember { mutableStateOf(WidgetKind.SMALL) }
+
+            LaunchedEffect(Unit) {
+                if (authManager.hasSignedInAccount()) {
+                    cloudSyncManager.runInitialSync(onRestored = { viewModel.reloadFromPrefs() })
+                }
+            }
 
             // Re-evaluate permissions every time app comes back to foreground
             val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -232,7 +254,17 @@ fun DoseviaApp(activity: MainActivity) {
                 label = "screenNav"
             ) { screen ->
                 when (screen) {
-                    Screen.HOME     -> HomeScreen(viewModel, onNavigate = { currentScreen = it })
+                    Screen.HOME     -> HomeScreen(
+                        viewModel = viewModel,
+                        accountUiState = accountUiState,
+                        onSignInClick = { signInLauncher.launch(authManager.getSignInIntent()) },
+                        onSignOutClick = {
+                            authManager.signOut {
+                                accountUiState = authManager.getLastSignedInAccountUiState()
+                            }
+                        },
+                        onNavigate = { currentScreen = it }
+                    )
                     Screen.SETTINGS -> SettingsScreen(
                         viewModel,
                         onBack = { currentScreen = Screen.HOME },
