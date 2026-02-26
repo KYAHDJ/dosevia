@@ -9,5 +9,6 @@
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/pill_widget_medium"
     android:previewLayout="@layout/pill_widget_medium"
+    android:previewImage="@drawable/widget_preview_medium"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen" />
