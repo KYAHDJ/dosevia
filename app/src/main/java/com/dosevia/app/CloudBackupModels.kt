@@ -4,7 +4,7 @@ data class BackupPayload(
     val version: Int = 1,
     val lastModifiedEpochMs: Long,
     val deviceId: String,
-    val prefs: Map<String, Any?>
+    val prefs: Map<String, Map<String, Any?>>
 )
 
 data class AccountUiState(

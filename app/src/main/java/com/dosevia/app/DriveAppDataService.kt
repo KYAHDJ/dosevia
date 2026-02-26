@@ -1,65 +1,119 @@
 package com.dosevia.app
 
-import com.google.api.client.extensions.android.http.AndroidHttp
-import com.google.api.client.http.ByteArrayContent
-import com.google.api.client.json.gson.GsonFactory
-import com.google.api.services.drive.Drive
-import com.google.api.services.drive.model.File
+import com.google.gson.Gson
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import java.net.URLEncoder
 
 class DriveAppDataService(private val authManager: GoogleAuthManager) {
 
     companion object {
         const val BACKUP_FILE_NAME = "dosevia_backup_v1.json"
-        const val BACKUP_MIME_TYPE = "application/json"
+        private const val BASE_DRIVE_FILES_URL = "https://www.googleapis.com/drive/v3/files"
+        private const val BASE_UPLOAD_URL = "https://www.googleapis.com/upload/drive/v3/files"
+        private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
     }
 
-    private suspend fun drive(): Drive? = withContext(Dispatchers.IO) {
-        val credential = authManager.createDriveCredential() ?: return@withContext null
-        Drive.Builder(
-            AndroidHttp.newCompatibleTransport(),
-            GsonFactory.getDefaultInstance(),
-            credential
-        ).setApplicationName("Dosevia").build()
-    }
+    private val gson = Gson()
+    private val client = OkHttpClient()
 
     suspend fun findBackupFileId(): String? = withContext(Dispatchers.IO) {
-        val drive = drive() ?: return@withContext null
-        val files = drive.files().list()
-            .setSpaces("appDataFolder")
-            .setQ("name='${BACKUP_FILE_NAME.replace("'", "\\'")}' and trashed=false")
-            .setFields("files(id,name,modifiedTime)")
-            .execute()
-            .files
-        files.firstOrNull()?.id
+        val query = "name='${BACKUP_FILE_NAME}' and 'appDataFolder' in parents and trashed=false"
+        val encodedQuery = URLEncoder.encode(query, "UTF-8")
+        val url = "$BASE_DRIVE_FILES_URL?q=$encodedQuery&spaces=appDataFolder&fields=files(id,name,modifiedTime)"
+        val response = executeWithAuthRetry { token ->
+            Request.Builder()
+                .url(url)
+                .get()
+                .header("Authorization", "Bearer $token")
+                .build()
+        } ?: return@withContext null
+
+        response.use {
+            if (!it.isSuccessful) return@withContext null
+            val body = it.body?.string().orEmpty()
+            val root = gson.fromJson(body, JsonObject::class.java)
+            val files = root.getAsJsonArray("files") ?: JsonArray()
+            if (files.size() == 0) null else files[0].asJsonObject.get("id")?.asString
+        }
     }
 
     suspend fun downloadBackup(fileId: String): String = withContext(Dispatchers.IO) {
-        val drive = drive() ?: error("No signed-in account")
-        drive.files().get(fileId).executeMediaAsInputStream().bufferedReader().use { it.readText() }
+        val url = "$BASE_DRIVE_FILES_URL/$fileId?alt=media"
+        val response = executeWithAuthRetry { token ->
+            Request.Builder()
+                .url(url)
+                .get()
+                .header("Authorization", "Bearer $token")
+                .build()
+        } ?: error("No signed-in account")
+
+        response.use {
+            if (!it.isSuccessful) error("Download failed: HTTP ${it.code}")
+            it.body?.string().orEmpty()
+        }
     }
 
     suspend fun createBackup(json: String): String = withContext(Dispatchers.IO) {
-        val drive = drive() ?: error("No signed-in account")
-        val metadata = File().apply {
-            name = BACKUP_FILE_NAME
-            mimeType = BACKUP_MIME_TYPE
-            parents = listOf("appDataFolder")
+        val boundary = "dosevia-boundary-${System.currentTimeMillis()}"
+        val metadata = """
+            {"name":"$BACKUP_FILE_NAME","parents":["appDataFolder"],"mimeType":"application/json"}
+        """.trimIndent()
+        val multipart = buildString {
+            append("--$boundary\r\n")
+            append("Content-Type: application/json; charset=UTF-8\r\n\r\n")
+            append(metadata)
+            append("\r\n--$boundary\r\n")
+            append("Content-Type: application/json\r\n\r\n")
+            append(json)
+            append("\r\n--$boundary--")
         }
-        val content = ByteArrayContent(BACKUP_MIME_TYPE, json.toByteArray())
-        drive.files().create(metadata, content).setFields("id").execute().id
+
+        val response = executeWithAuthRetry { token ->
+            Request.Builder()
+                .url("$BASE_UPLOAD_URL?uploadType=multipart")
+                .post(multipart.toRequestBody("multipart/related; boundary=$boundary".toMediaType()))
+                .header("Authorization", "Bearer $token")
+                .build()
+        } ?: error("No signed-in account")
+
+        response.use {
+            if (!it.isSuccessful) error("Create failed: HTTP ${it.code}")
+            val root = gson.fromJson(it.body?.string().orEmpty(), JsonObject::class.java)
+            root.get("id")?.asString ?: error("Missing file id")
+        }
     }
 
     suspend fun updateBackup(fileId: String, json: String) = withContext(Dispatchers.IO) {
-        val drive = drive() ?: error("No signed-in account")
-        val content = ByteArrayContent(BACKUP_MIME_TYPE, json.toByteArray())
-        drive.files().update(fileId, null, content).execute()
+        val response = executeWithAuthRetry { token ->
+            Request.Builder()
+                .url("$BASE_UPLOAD_URL/$fileId?uploadType=media")
+                .patch(json.toRequestBody(JSON_MEDIA_TYPE))
+                .header("Authorization", "Bearer $token")
+                .header("Content-Type", "application/json")
+                .build()
+        } ?: error("No signed-in account")
+
+        response.use {
+            if (!it.isSuccessful) error("Update failed: HTTP ${it.code}")
+        }
     }
 
-    suspend fun getBackupModifiedEpochMs(fileId: String): Long? = withContext(Dispatchers.IO) {
-        val drive = drive() ?: return@withContext null
-        val file = drive.files().get(fileId).setFields("modifiedTime").execute()
-        file.modifiedTime?.value
+    private suspend fun executeWithAuthRetry(buildRequest: (token: String) -> Request): Response? {
+        var token = authManager.getAccessToken(forceRefresh = false) ?: return null
+        var response = client.newCall(buildRequest(token)).execute()
+        if (response.code != 401) return response
+
+        response.close()
+        authManager.clearToken(token)
+        token = authManager.getAccessToken(forceRefresh = true) ?: return null
+        return client.newCall(buildRequest(token)).execute()
     }
 }
