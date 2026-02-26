@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -14,6 +15,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,12 +29,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.dosevia.app.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun HomeScreen(viewModel: AppViewModel, onNavigate: (Screen) -> Unit = {}) {
+fun HomeScreen(
+    viewModel: AppViewModel,
+    accountUiState: AccountUiState = AccountUiState(),
+    onSignInClick: () -> Unit = {},
+    onSignOutClick: () -> Unit = {},
+    onNavigate: (Screen) -> Unit = {}
+) {
     val state by viewModel.state.collectAsState()
 
     var showPillTypeModal     by remember { mutableStateOf(false) }
@@ -83,20 +93,13 @@ fun HomeScreen(viewModel: AppViewModel, onNavigate: (Screen) -> Unit = {}) {
                         .statusBarsPadding()
                         .padding(horizontal = headerPadH, vertical = headerPadV)
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Dosevia",
-                            fontSize   = titleFontSp,
-                            fontWeight = FontWeight.Bold,
-                            color      = Color.White
-                        )
-                        Text("Professional Pill Reminder",
-                            fontSize = subtitleFontSp,
-                            color    = Color.White.copy(alpha = 0.9f)
-                        )
-                    }
+                    HeaderAccountRow(
+                        titleFontSp = titleFontSp,
+                        subtitleFontSp = subtitleFontSp,
+                        accountUiState = accountUiState,
+                        onSignInClick = onSignInClick,
+                        onSignOutClick = onSignOutClick
+                    )
 
                     Spacer(Modifier.height(14.dp))
 
@@ -638,6 +641,71 @@ private fun TodayNotesCard(
                 color    = Color(0xFF9CA3AF),
                 modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
             )
+        }
+    }
+}
+
+@Composable
+private fun HeaderAccountRow(
+    titleFontSp: androidx.compose.ui.unit.TextUnit,
+    subtitleFontSp: androidx.compose.ui.unit.TextUnit,
+    accountUiState: AccountUiState,
+    onSignInClick: () -> Unit,
+    onSignOutClick: () -> Unit
+) {
+    var showMenu by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.align(Alignment.Center)
+        ) {
+            Text("Dosevia", fontSize = titleFontSp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Professional Pill Reminder", fontSize = subtitleFontSp, color = Color.White.copy(alpha = 0.9f))
+        }
+
+        Box(modifier = Modifier.align(Alignment.TopEnd)) {
+            if (!accountUiState.isSignedIn) {
+                TextButton(onClick = onSignInClick) {
+                    Text("Sign in", color = Color.White)
+                }
+            } else {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .clickable { showMenu = true }
+                        .background(Color.White.copy(alpha = 0.15f))
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    if (!accountUiState.photoUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = accountUiState.photoUrl,
+                            contentDescription = "Account photo",
+                            modifier = Modifier.size(26.dp).clip(CircleShape)
+                        )
+                    } else {
+                        Icon(Icons.Default.AccountCircle, contentDescription = null, tint = Color.White)
+                    }
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = accountUiState.displayName ?: "Google",
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.widthIn(max = 120.dp)
+                    )
+                }
+                DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                    DropdownMenuItem(
+                        text = { Text("Sign out") },
+                        onClick = {
+                            showMenu = false
+                            onSignOutClick()
+                        }
+                    )
+                }
+            }
         }
     }
 }
