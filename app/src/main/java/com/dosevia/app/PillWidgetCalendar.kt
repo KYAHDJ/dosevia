@@ -115,6 +115,8 @@ class PillWidgetCalendar : AppWidgetProvider() {
                 if (status == PillStatus.MISSED) missedCount++
             }
 
+            val theme = loadWidgetThemesFromPrefs(ctx).forKind(WidgetKind.CALENDAR)
+
             val bitmap = WidgetCalendarBitmapRenderer.render(
                 context = ctx,
                 year = year,
@@ -122,7 +124,8 @@ class PillWidgetCalendar : AppWidgetProvider() {
                 dayStatus = monthStatus,
                 missedCount = missedCount,
                 widthDp = minW,
-                heightDp = minH
+                heightDp = minH,
+                theme = theme
             )
 
             val views = RemoteViews(ctx.packageName, R.layout.pill_widget_calendar)

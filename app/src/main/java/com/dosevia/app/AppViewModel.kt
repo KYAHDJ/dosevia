@@ -22,7 +22,8 @@ data class AppState(
     val days: List<DayData> = emptyList(),
     val settings: ReminderSettings = ReminderSettings(),
     val customPillConfig: CustomPillConfig = CustomPillConfig(),
-    val notes: List<Note> = emptyList()
+    val notes: List<Note> = emptyList(),
+    val widgetThemes: WidgetThemeSettings = defaultWidgetThemeSettings()
 )
 
 class AppViewModel(private val context: Context) : ViewModel() {
@@ -249,6 +250,10 @@ class AppViewModel(private val context: Context) : ViewModel() {
             } catch (_: Exception) { null }
         } ?: emptyList()
 
+        val widgetThemes: WidgetThemeSettings = configPrefs.getString("widgetThemes", null)?.let {
+            try { gson.fromJson(it, WidgetThemeSettings::class.java) } catch (_: Exception) { null }
+        } ?: defaultWidgetThemeSettings()
+
         // Build days — status comes from per-day statusPrefs, never from JSON parsing
         val days = buildDays(pillType, startDate, customConfig)
 
@@ -262,7 +267,8 @@ class AppViewModel(private val context: Context) : ViewModel() {
             days             = days,
             settings         = settings,
             customPillConfig = customConfig,
-            notes            = notes
+            notes            = notes,
+            widgetThemes     = widgetThemes
         )
 
         applyAlarm(settings, days)
@@ -278,6 +284,7 @@ class AppViewModel(private val context: Context) : ViewModel() {
             .putString("customPillConfig", gson.toJson(s.customPillConfig))
             .putString("settings",         gson.toJson(s.settings))
             .putString("notes",            gson.toJson(s.notes))
+            .putString("widgetThemes",     gson.toJson(s.widgetThemes))
             .commit()
         PillWidget.requestUpdate(appContext)
         PillWidgetMedium.requestUpdate(appContext)
@@ -355,6 +362,16 @@ class AppViewModel(private val context: Context) : ViewModel() {
 
     fun deleteNote(id: String) {
         _state.value = _state.value.copy(notes = _state.value.notes.filter { it.id != id })
+        saveConfig()
+    }
+
+    fun updateWidgetTheme(kind: WidgetKind, colors: WidgetThemeColors) {
+        val updatedThemes = when (kind) {
+            WidgetKind.SMALL -> _state.value.widgetThemes.copy(small = colors)
+            WidgetKind.MEDIUM -> _state.value.widgetThemes.copy(medium = colors)
+            WidgetKind.CALENDAR -> _state.value.widgetThemes.copy(calendar = colors)
+        }
+        _state.value = _state.value.copy(widgetThemes = updatedThemes)
         saveConfig()
     }
 }

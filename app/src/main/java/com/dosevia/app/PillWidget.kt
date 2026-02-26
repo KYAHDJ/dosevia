@@ -71,11 +71,14 @@ class PillWidget : AppWidgetProvider() {
                 cal.add(Calendar.DAY_OF_MONTH, 1)
             }
 
+            val theme = loadWidgetThemesFromPrefs(ctx).forKind(WidgetKind.SMALL)
+
             val bitmap = WidgetBitmapRenderer.render(
                 context    = ctx,
                 pillLabel  = pillType.displayName,
                 takenPills = takenPills,
-                totalPills = totalPills
+                totalPills = totalPills,
+                theme = theme
             )
 
             val views = RemoteViews(ctx.packageName, R.layout.pill_widget)

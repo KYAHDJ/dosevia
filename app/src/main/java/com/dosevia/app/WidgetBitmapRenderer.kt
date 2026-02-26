@@ -2,7 +2,6 @@ package com.dosevia.app
 
 import android.content.Context
 import android.graphics.*
-import android.util.DisplayMetrics
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -16,7 +15,8 @@ object WidgetBitmapRenderer {
         context: Context,
         pillLabel: String,
         takenPills: Int,
-        totalPills: Int
+        totalPills: Int,
+        theme: WidgetThemeColors
     ): Bitmap {
         val dm = context.resources.displayMetrics
         val size = (160 * dm.density).toInt().coerceAtLeast(160)
@@ -27,7 +27,7 @@ object WidgetBitmapRenderer {
 
         // ── Background: dark semi-transparent circle ──────────────────────────
         val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#CC0F0F1A") // very dark navy, ~80% opaque
+            color = theme.background // very dark navy, ~80% opaque
             style = Paint.Style.FILL
         }
         canvas.drawCircle(cx, cy, cx * 0.92f, bgPaint)
@@ -59,9 +59,9 @@ object WidgetBitmapRenderer {
                 shader = SweepGradient(
                     cx, cy,
                     intArrayOf(
-                        Color.parseColor("#F609BC"),
-                        Color.parseColor("#FAB86D"),
-                        Color.parseColor("#F609BC")
+                        theme.accent1,
+                        theme.accent2,
+                        theme.accent1
                     ),
                     floatArrayOf(0f, 0.5f, 1f)
                 ).also {
@@ -81,7 +81,7 @@ object WidgetBitmapRenderer {
             val dotX = cx + r * Math.cos(endAngleRad).toFloat()
             val dotY = cy + r * Math.sin(endAngleRad).toFloat()
             val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.parseColor("#FAB86D")
+                color = theme.accent2
                 style = Paint.Style.FILL
             }
             canvas.drawCircle(dotX, dotY, cx * 0.045f, dotPaint)
@@ -90,7 +90,7 @@ object WidgetBitmapRenderer {
         // ── Date (top, small) ─────────────────────────────────────────────────
         val dateStr = SimpleDateFormat("EEE, MMM d", Locale.getDefault()).format(Date())
         val datePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#99FFFFFF")
+            color = theme.textSecondary
             textSize = cx * 0.155f
             textAlign = Paint.Align.CENTER
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
@@ -99,7 +99,7 @@ object WidgetBitmapRenderer {
 
         // ── Taken count (big, center) ─────────────────────────────────────────
         val countPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
+            color = theme.textPrimary
             textSize = cx * 0.52f
             textAlign = Paint.Align.CENTER
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
@@ -111,7 +111,7 @@ object WidgetBitmapRenderer {
 
         // ── "/ total" beneath count ──────────────────────────────────────────
         val totalPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#88FFFFFF")
+            color = theme.textSecondary
             textSize = cx * 0.155f
             textAlign = Paint.Align.CENTER
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
@@ -120,7 +120,7 @@ object WidgetBitmapRenderer {
 
         // ── Pill type label (bottom) ──────────────────────────────────────────
         val typePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#F609BC")
+            color = theme.accent1
             textSize = cx * 0.165f
             textAlign = Paint.Align.CENTER
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
