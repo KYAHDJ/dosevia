@@ -14,7 +14,8 @@ object WidgetMediumBitmapRenderer {
         takenPills: Int,
         missedPills: Int,
         widthDp: Int  = MIN_DP,
-        heightDp: Int = MIN_DP
+        heightDp: Int = MIN_DP,
+        theme: WidgetThemeColors
     ): Bitmap {
         val dm = context.resources.displayMetrics
 
@@ -33,14 +34,14 @@ object WidgetMediumBitmapRenderer {
 
         // Card background
         val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#F0EEFF")
+            color = theme.background
             style = Paint.Style.FILL
         }
         canvas.drawRoundRect(RectF(0f, 0f, w.toFloat(), h.toFloat()), corner, corner, bgPaint)
 
         // Title
         val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#1A1A2E")
+            color = theme.textPrimary
             textSize = w * 0.10f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.LEFT
@@ -55,15 +56,15 @@ object WidgetMediumBitmapRenderer {
 
         drawRow(canvas, w, rowTop + rowH * 0 + rowGap, rowH - rowGap * 2, pad, corner * 0.5f,
             Color.parseColor("#FFFFFF"), Color.parseColor("#9E9EAE"),
-            "Total Pills", "$totalPills", Color.parseColor("#1A1A2E"))
+            "Total Pills", "$totalPills", theme.textPrimary, theme.textSecondary)
 
         drawRow(canvas, w, rowTop + rowH * 1 + rowGap, rowH - rowGap * 2, pad, corner * 0.5f,
-            Color.parseColor("#EDFFF4"), Color.parseColor("#22C55E"),
-            "Taken", "$takenPills", Color.parseColor("#16A34A"))
+            Color.parseColor("#EDFFF4"), theme.accent1,
+            "Taken", "$takenPills", theme.accent1, theme.textSecondary)
 
         drawRow(canvas, w, rowTop + rowH * 2 + rowGap, rowH - rowGap * 2, pad, corner * 0.5f,
-            Color.parseColor("#FFF0F0"), Color.parseColor("#EF4444"),
-            "Missed", "$missedPills", Color.parseColor("#DC2626"))
+            Color.parseColor("#FFF0F0"), theme.accent2,
+            "Missed", "$missedPills", theme.accent2, theme.textSecondary)
 
         return bitmap
     }
@@ -72,7 +73,7 @@ object WidgetMediumBitmapRenderer {
         canvas: Canvas, w: Int,
         top: Float, rowH: Float, hPad: Float, corner: Float,
         bgColor: Int, dotColor: Int,
-        label: String, value: String, valueColor: Int
+        label: String, value: String, valueColor: Int, labelColor: Int
     ) {
         val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = bgColor; style = Paint.Style.FILL }
         canvas.drawRoundRect(RectF(hPad, top, w - hPad, top + rowH), corner, corner, bgPaint)
@@ -88,7 +89,7 @@ object WidgetMediumBitmapRenderer {
         canvas.drawCircle(cx, cy, dotR * 0.45f, dotPaint)
 
         val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#666688")
+            color = labelColor
             textSize = rowH * 0.36f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
             textAlign = Paint.Align.LEFT

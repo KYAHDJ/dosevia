@@ -35,7 +35,8 @@ object WidgetCalendarBitmapRenderer {
         dayStatus: Map<Int, PillStatus?>,
         missedCount: Int,
         widthDp: Int,
-        heightDp: Int
+        heightDp: Int,
+        theme: WidgetThemeColors
     ): Bitmap {
         val dm = context.resources.displayMetrics
         val w = (widthDp.coerceIn(MIN_W_DP, MAX_W_DP) * dm.density).toInt()
@@ -51,11 +52,11 @@ object WidgetCalendarBitmapRenderer {
         canvas.save()
         canvas.clipPath(clipPath)
 
-        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#EC2BAA") }
+        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = theme.background }
         canvas.drawRoundRect(outerRect, radius, radius, bgPaint)
 
         val stripePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#F74CC0")
+            color = theme.accent2
             strokeWidth = w * 0.04f
             alpha = 120
         }
@@ -77,7 +78,7 @@ object WidgetCalendarBitmapRenderer {
                 headerRect.top,
                 headerRect.left,
                 headerRect.bottom,
-                intArrayOf(Color.parseColor("#E2E6EC"), Color.parseColor("#C5CBD5")),
+                intArrayOf(theme.accent1, theme.accent1),
                 null,
                 Shader.TileMode.CLAMP
             )
@@ -87,12 +88,12 @@ object WidgetCalendarBitmapRenderer {
         val headerBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
             strokeWidth = w * 0.006f
-            color = Color.parseColor("#768194")
+            color = theme.textSecondary
         }
         canvas.drawRoundRect(headerRect, headerCorner, headerCorner, headerBorderPaint)
 
         val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#111827")
+            color = theme.textPrimary
             textSize = w * 0.05f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
@@ -107,7 +108,7 @@ object WidgetCalendarBitmapRenderer {
         val monthLabel = "$monthName $year"
 
         val monthPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#374151")
+            color = theme.textSecondary
             textSize = w * 0.033f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
@@ -117,7 +118,7 @@ object WidgetCalendarBitmapRenderer {
         // Weekday row
         val weekdays = listOf("S", "M", "T", "W", "T", "F", "S")
         val weekPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#111827")
+            color = theme.textPrimary
             textSize = w * 0.03f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
@@ -180,7 +181,7 @@ object WidgetCalendarBitmapRenderer {
                     text = Color.WHITE
                 )
                 PillStatus.TAKEN -> DayPalette(
-                    outer = Color.parseColor("#374151"),
+                    outer = theme.textSecondary,
                     innerTop = Color.parseColor("#4B5563"),
                     innerBottom = Color.parseColor("#1F2937"),
                     text = Color.parseColor("#D1D5DB")
@@ -189,7 +190,7 @@ object WidgetCalendarBitmapRenderer {
                     outer = Color.parseColor("#8C95A5"),
                     innerTop = Color.parseColor("#F8FAFC"),
                     innerBottom = Color.parseColor("#D4DAE3"),
-                    text = Color.parseColor("#111827")
+                    text = theme.textPrimary
                 )
             }
 
