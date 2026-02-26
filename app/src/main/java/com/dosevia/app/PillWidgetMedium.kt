@@ -89,13 +89,16 @@ class PillWidgetMedium : AppWidgetProvider() {
             val minW     = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 110)
             val minH     = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110)
 
+            val theme = loadWidgetThemesFromPrefs(ctx).forKind(WidgetKind.MEDIUM)
+
             val bitmap = WidgetMediumBitmapRenderer.render(
                 context     = ctx,
                 totalPills  = totalPills,
                 takenPills  = takenPills,
                 missedPills = missedPills,
                 widthDp     = minW,
-                heightDp    = minH
+                heightDp    = minH,
+                theme = theme
             )
 
             val views = RemoteViews(ctx.packageName, R.layout.pill_widget_medium)

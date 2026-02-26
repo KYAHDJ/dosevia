@@ -59,7 +59,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 
-enum class Screen { HOME, SETTINGS, HISTORY, NOTES }
+enum class Screen { HOME, SETTINGS, HISTORY, NOTES, WIDGET_CUSTOMIZE, WIDGET_THEME_EDITOR }
 
 class MainActivity : ComponentActivity() {
 
@@ -188,6 +188,7 @@ fun DoseviaApp(activity: MainActivity) {
             )
 
             var currentScreen by remember { mutableStateOf(Screen.HOME) }
+            var selectedWidget by remember { mutableStateOf(WidgetKind.SMALL) }
 
             // Re-evaluate permissions every time app comes back to foreground
             val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -232,9 +233,25 @@ fun DoseviaApp(activity: MainActivity) {
             ) { screen ->
                 when (screen) {
                     Screen.HOME     -> HomeScreen(viewModel, onNavigate = { currentScreen = it })
-                    Screen.SETTINGS -> SettingsScreen(viewModel, onBack = { currentScreen = Screen.HOME })
+                    Screen.SETTINGS -> SettingsScreen(
+                        viewModel,
+                        onBack = { currentScreen = Screen.HOME },
+                        onOpenWidgetCustomize = { currentScreen = Screen.WIDGET_CUSTOMIZE }
+                    )
                     Screen.HISTORY  -> HistoryScreen(viewModel, onBack = { currentScreen = Screen.HOME })
                     Screen.NOTES    -> NotesScreen(viewModel, onBack = { currentScreen = Screen.HOME })
+                    Screen.WIDGET_CUSTOMIZE -> WidgetCustomizeScreen(
+                        onBack = { currentScreen = Screen.SETTINGS },
+                        onSelectWidget = { kind ->
+                            selectedWidget = kind
+                            currentScreen = Screen.WIDGET_THEME_EDITOR
+                        }
+                    )
+                    Screen.WIDGET_THEME_EDITOR -> WidgetThemeEditorScreen(
+                        viewModel = viewModel,
+                        widgetKind = selectedWidget,
+                        onBack = { currentScreen = Screen.WIDGET_CUSTOMIZE }
+                    )
                 }
             }
 

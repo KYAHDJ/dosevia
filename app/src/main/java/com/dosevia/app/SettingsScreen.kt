@@ -62,7 +62,8 @@ import java.io.File
 @Composable
 fun SettingsScreen(
     viewModel: AppViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onOpenWidgetCustomize: () -> Unit
 ) {
     val state    by viewModel.state.collectAsState()
     val settings = state.settings
@@ -242,6 +243,19 @@ fun SettingsScreen(
                             lblSp   = rowLblSp, subSp = rowSubSp
                         )
                     }
+                }
+
+                // ── WIDGETS ───────────────────────────────────────────────────
+                SettingsSection("WIDGETS", secLblSp) {
+                    SettingsChevronRow(
+                        icon    = Icons.Default.Widgets,
+                        iconBg  = Color(0xFF8B5CF6),
+                        title   = "Customize Widgets",
+                        sub     = "Change widget colors & style",
+                        enabled = true,
+                        onClick = onOpenWidgetCustomize,
+                        lblSp   = rowLblSp, subSp = rowSubSp
+                    )
                 }
 
                 // ── OTHER ─────────────────────────────────────────────────────
