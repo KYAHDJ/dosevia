@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!--
+        Expose the app's private alarm_sounds/ directory via content:// URIs.
+        This is the folder where Dosevia copies user-picked audio files.
+        Path maps to:  context.filesDir/alarm_sounds/
+    -->
+    <files-path
+        name="alarm_sounds"
+        path="alarm_sounds/" />
+</paths>
