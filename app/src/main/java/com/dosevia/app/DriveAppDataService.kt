@@ -63,7 +63,7 @@ class DriveAppDataService(private val authManager: GoogleAuthManager) {
         }
     }
 
-    suspend fun createBackup(json: String): String = withContext(Dispatchers.IO) {
+    suspend fun createBackup(json: String): Int = withContext(Dispatchers.IO) {
         val boundary = "dosevia-boundary-${System.currentTimeMillis()}"
         val metadata = """
             {"name":"$BACKUP_FILE_NAME","parents":["appDataFolder"],"mimeType":"application/json"}
@@ -88,12 +88,11 @@ class DriveAppDataService(private val authManager: GoogleAuthManager) {
 
         response.use {
             if (!it.isSuccessful) error("Create failed: HTTP ${it.code}")
-            val root = gson.fromJson(it.body?.string().orEmpty(), JsonObject::class.java)
-            root.get("id")?.asString ?: error("Missing file id")
+            it.code
         }
     }
 
-    suspend fun updateBackup(fileId: String, json: String) = withContext(Dispatchers.IO) {
+    suspend fun updateBackup(fileId: String, json: String): Int = withContext(Dispatchers.IO) {
         val response = executeWithAuthRetry { token ->
             Request.Builder()
                 .url("$BASE_UPLOAD_URL/$fileId?uploadType=media")
@@ -105,6 +104,7 @@ class DriveAppDataService(private val authManager: GoogleAuthManager) {
 
         response.use {
             if (!it.isSuccessful) error("Update failed: HTTP ${it.code}")
+            it.code
         }
     }
 

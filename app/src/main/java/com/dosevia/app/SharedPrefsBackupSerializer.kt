@@ -77,6 +77,12 @@ object SharedPrefsBackupSerializer {
 
     fun restoreAllPrefs(context: Context, payload: BackupPayload) {
         val appContext = context.applicationContext
+
+        // Clear every known shared preference file before restoring.
+        findAllPrefsNames(appContext).forEach { prefName ->
+            appContext.getSharedPreferences(prefName, Context.MODE_PRIVATE).edit().clear().commit()
+        }
+
         payload.prefs.forEach { (prefName, entries) ->
             val prefs = appContext.getSharedPreferences(prefName, Context.MODE_PRIVATE)
             val editor = prefs.edit().clear()
@@ -93,7 +99,7 @@ object SharedPrefsBackupSerializer {
                     else -> editor.putString(key, value.toString())
                 }
             }
-            editor.apply()
+            editor.commit()
         }
     }
 
