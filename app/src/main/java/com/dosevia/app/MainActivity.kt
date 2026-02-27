@@ -301,10 +301,6 @@ fun DoseviaApp(activity: MainActivity) {
                         isSyncOffWarningVisible = accountUiState.isSignedIn && !syncState.autoUploadEnabled,
                         onEnableSyncNow = ::runSyncNowFlow,
                         onSignInClick = { signInLauncher.launch(authManager.getSignInIntent()) },
-                        onSignOutClick = {
-                            authManager.signOut()
-                            cloudSyncManager.clearSyncMetadataAndStopWork()
-                        },
                         onNavigate = { currentScreen = it }
                     )
                     Screen.SETTINGS -> SettingsScreen(
@@ -314,14 +310,16 @@ fun DoseviaApp(activity: MainActivity) {
                         onBack = { currentScreen = Screen.HOME },
                         onOpenWidgetCustomize = { currentScreen = Screen.WIDGET_CUSTOMIZE },
                         onOpenAboutHelp = { currentScreen = Screen.ABOUT_HELP },
+                        onSignOut = {
+                            authManager.signOut()
+                            cloudSyncManager.clearSyncMetadataAndStopWork()
+                            currentScreen = Screen.HOME
+                        },
                         onDeleteAccount = {
                             authManager.signOut()
                             cloudSyncManager.clearSyncMetadataAndStopWork()
-                            context.getSharedPreferences("dosevia_prefs", Context.MODE_PRIVATE).edit().clear().commit()
-                            context.getSharedPreferences("dosevia_status", Context.MODE_PRIVATE).edit().clear().commit()
-                            context.getSharedPreferences("sync_state_prefs", Context.MODE_PRIVATE).edit().clear().commit()
-                            cancelAlarm(context)
-                            context.getSharedPreferences("dosevia_prefs", Context.MODE_PRIVATE).edit().remove("alarm_taken_date").commit()
+                            AppResetter.wipeAllLocalData(context)
+                            currentScreen = Screen.HOME
                             (context as? android.app.Activity)?.recreate()
                         },
                         onSyncNow = ::runSyncNowFlow,

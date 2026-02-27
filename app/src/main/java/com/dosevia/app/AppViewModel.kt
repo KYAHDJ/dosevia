@@ -15,6 +15,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 private const val TAG = "DoseviaVM"
+const val PREFS_DOSEVIA = "dosevia_prefs"
+const val KEY_NOTES = "notes"
+const val KEY_PROFILE_NAME = "profileName"
+const val KEY_PROFILE_PHOTO_B64 = "profilePhotoB64"
 
 data class AppState(
     val pillType: PillType = PillType.TYPE_21_7,
@@ -23,6 +27,8 @@ data class AppState(
     val settings: ReminderSettings = ReminderSettings(),
     val customPillConfig: CustomPillConfig = CustomPillConfig(),
     val notes: List<Note> = emptyList(),
+    val profileName: String = "",
+    val profilePhotoB64: String = "",
     val widgetThemes: WidgetThemeSettings = defaultWidgetThemeSettings()
 )
 
@@ -35,7 +41,7 @@ class AppViewModel(private val context: Context) : ViewModel() {
     // 1. dosevia_prefs  — config (pillType, startDate, settings, notes, customConfig)
     // 2. dosevia_status — per-day status stored as "status_YYYY-MM-DD" keys
     //    This is bulletproof: no JSON parsing, no date serialization issues.
-    private val configPrefs = appContext.getSharedPreferences("dosevia_prefs",  Context.MODE_PRIVATE)
+    private val configPrefs = appContext.getSharedPreferences(PREFS_DOSEVIA,  Context.MODE_PRIVATE)
     private val statusPrefs = appContext.getSharedPreferences("dosevia_status", Context.MODE_PRIVATE)
     private val cloudSyncManager = CloudSyncManager(appContext)
 
@@ -250,12 +256,15 @@ class AppViewModel(private val context: Context) : ViewModel() {
             try { gson.fromJson(it, ReminderSettings::class.java) } catch (_: Exception) { null }
         } ?: ReminderSettings()
 
-        val notes: List<Note> = configPrefs.getString("notes", null)?.let {
+        val notes: List<Note> = configPrefs.getString(KEY_NOTES, null)?.let {
             try {
                 val type = object : com.google.gson.reflect.TypeToken<List<Note>>() {}.type
                 gson.fromJson(it, type)
             } catch (_: Exception) { null }
         } ?: emptyList()
+
+        val profileName = configPrefs.getString(KEY_PROFILE_NAME, "") ?: ""
+        val profilePhotoB64 = configPrefs.getString(KEY_PROFILE_PHOTO_B64, "") ?: ""
 
         val widgetThemes: WidgetThemeSettings = configPrefs.getString("widgetThemes", null)?.let {
             try { gson.fromJson(it, WidgetThemeSettings::class.java) } catch (_: Exception) { null }
@@ -275,6 +284,8 @@ class AppViewModel(private val context: Context) : ViewModel() {
             settings         = settings,
             customPillConfig = customConfig,
             notes            = notes,
+            profileName      = profileName,
+            profilePhotoB64  = profilePhotoB64,
             widgetThemes     = widgetThemes
         )
 
@@ -290,7 +301,9 @@ class AppViewModel(private val context: Context) : ViewModel() {
             .putLong("startDate",          s.startDate.time)
             .putString("customPillConfig", gson.toJson(s.customPillConfig))
             .putString("settings",         gson.toJson(s.settings))
-            .putString("notes",            gson.toJson(s.notes))
+            .putString(KEY_NOTES,           gson.toJson(s.notes))
+            .putString(KEY_PROFILE_NAME,    s.profileName)
+            .putString(KEY_PROFILE_PHOTO_B64, s.profilePhotoB64)
             .putString("widgetThemes",     gson.toJson(s.widgetThemes))
             .commit()
         cloudSyncManager.requestSyncDebounced()
@@ -370,6 +383,21 @@ class AppViewModel(private val context: Context) : ViewModel() {
 
     fun deleteNote(id: String) {
         _state.value = _state.value.copy(notes = _state.value.notes.filter { it.id != id })
+        saveConfig()
+    }
+
+    fun updateProfileName(name: String) {
+        _state.value = _state.value.copy(profileName = name)
+        saveConfig()
+    }
+
+    fun updateProfilePhoto(base64: String) {
+        _state.value = _state.value.copy(profilePhotoB64 = base64)
+        saveConfig()
+    }
+
+    fun clearProfilePhoto() {
+        _state.value = _state.value.copy(profilePhotoB64 = "")
         saveConfig()
     }
 
