@@ -313,7 +313,10 @@ fun DoseviaApp(activity: MainActivity) {
                         onSignOut = {
                             authManager.signOut()
                             cloudSyncManager.clearSyncMetadataAndStopWork()
+                            AppResetter.wipeAllLocalData(context)
+                            viewModel.reloadFromPrefs()
                             currentScreen = Screen.HOME
+                            (context as? android.app.Activity)?.recreate()
                         },
                         onDeleteAccount = {
                             authManager.signOut()
