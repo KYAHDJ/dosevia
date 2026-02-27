@@ -19,6 +19,7 @@ import android.net.Uri
 import android.widget.Toast
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -347,7 +348,9 @@ fun SettingsScreen(
                         enabled = true,
                         onClick = {
                             try {
-                                pickPhotoLauncher.launch(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                pickPhotoLauncher.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
                             } catch (_: Exception) {
                                 fallbackPhotoLauncher.launch("image/*")
                             }
