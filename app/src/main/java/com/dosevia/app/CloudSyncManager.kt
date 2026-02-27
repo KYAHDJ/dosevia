@@ -44,6 +44,19 @@ class CloudSyncManager(private val context: Context) {
         syncPrefs.edit().putLong(KEY_LOCAL_LAST_MODIFIED, System.currentTimeMillis()).apply()
     }
 
+    fun unregisterPrefsListeners() {
+        listeners.forEach { (prefs, listener) ->
+            prefs.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+        listeners.clear()
+    }
+
+    fun clearSyncMetadataAndStopWork() {
+        unregisterPrefsListeners()
+        syncPrefs.edit().clear().apply()
+        WorkManager.getInstance(appContext).cancelUniqueWork("cloud_sync")
+    }
+
     fun requestSyncDebounced(delayMs: Long = 5000L) {
         if (!authManager.hasSignedInAccount()) return
         val request = OneTimeWorkRequestBuilder<CloudSyncWorker>()
@@ -83,6 +96,11 @@ class CloudSyncManager(private val context: Context) {
                     syncPrefs.edit().putLong(KEY_LOCAL_LAST_MODIFIED, localPayload.lastModifiedEpochMs).apply()
                 }
             } catch (e: Exception) {
+                if (e is DriveAppDataService.DriveAuthException) {
+                    authManager.signOutAndClearLocalState(promptDrivePermissionDialog = true)
+                    clearSyncMetadataAndStopWork()
+                    return@launch
+                }
                 Log.w(TAG_SYNC, "Initial sync failed", e)
                 requestSyncDebounced()
             }
@@ -98,14 +116,20 @@ class CloudSyncManager(private val context: Context) {
             return
         }
 
-        val cloudPayload = SharedPrefsBackupSerializer.fromJson(driveService.downloadBackup(fileId))
-        if (cloudPayload.lastModifiedEpochMs > localPayload.lastModifiedEpochMs) {
-            SharedPrefsBackupSerializer.restoreAllPrefs(appContext, cloudPayload)
-            syncPrefs.edit().putLong(KEY_LOCAL_LAST_MODIFIED, cloudPayload.lastModifiedEpochMs).apply()
-            return
-        }
+        try {
+            val cloudPayload = SharedPrefsBackupSerializer.fromJson(driveService.downloadBackup(fileId))
+            if (cloudPayload.lastModifiedEpochMs > localPayload.lastModifiedEpochMs) {
+                SharedPrefsBackupSerializer.restoreAllPrefs(appContext, cloudPayload)
+                syncPrefs.edit().putLong(KEY_LOCAL_LAST_MODIFIED, cloudPayload.lastModifiedEpochMs).apply()
+                return
+            }
 
-        driveService.updateBackup(fileId, SharedPrefsBackupSerializer.toJson(localPayload))
-        syncPrefs.edit().putLong(KEY_LOCAL_LAST_MODIFIED, localPayload.lastModifiedEpochMs).apply()
+            driveService.updateBackup(fileId, SharedPrefsBackupSerializer.toJson(localPayload))
+            syncPrefs.edit().putLong(KEY_LOCAL_LAST_MODIFIED, localPayload.lastModifiedEpochMs).apply()
+        } catch (e: DriveAppDataService.DriveAuthException) {
+            authManager.signOutAndClearLocalState(promptDrivePermissionDialog = true)
+            clearSyncMetadataAndStopWork()
+            throw e
+        }
     }
 }

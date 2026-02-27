@@ -62,9 +62,11 @@ import java.io.File
 @Composable
 fun SettingsScreen(
     viewModel: AppViewModel,
+    accountUiState: AccountUiState,
     onBack: () -> Unit,
     onOpenWidgetCustomize: () -> Unit,
-    onOpenAboutHelp: () -> Unit
+    onOpenAboutHelp: () -> Unit,
+    onDeleteAccount: () -> Unit
 ) {
     val state    by viewModel.state.collectAsState()
     val settings = state.settings
@@ -75,6 +77,8 @@ fun SettingsScreen(
     var showSubDialog    by remember { mutableStateOf(false) }
     var showIconPicker   by remember { mutableStateOf(false) }
     var showSoundPicker  by remember { mutableStateOf(false) }
+    var showDeleteAccountConfirmOne by remember { mutableStateOf(false) }
+    var showDeleteAccountConfirmTwo by remember { mutableStateOf(false) }
     var tempText         by remember { mutableStateOf("") }
 
     val gradient = Brush.linearGradient(listOf(Color(0xFFF609BC), Color(0xFFFAB86D)))
@@ -280,6 +284,20 @@ fun SettingsScreen(
                         onClick = { },
                         lblSp   = rowLblSp, subSp = rowSubSp
                     )
+
+                    if (accountUiState.isSignedIn) {
+                        HorizontalDivider(color = Color(0xFFF3F4F6))
+                        SettingsChevronRow(
+                            icon = Icons.Default.DeleteForever,
+                            iconBg = Color(0xFFDC2626),
+                            title = "Delete account",
+                            sub = "Sign out on this device and stop syncing",
+                            enabled = true,
+                            onClick = { showDeleteAccountConfirmOne = true },
+                            lblSp = rowLblSp,
+                            subSp = rowSubSp
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(80.dp))
@@ -339,6 +357,48 @@ fun SettingsScreen(
             onSelect         = { soundPref ->
                 viewModel.updateSettings(settings.copy(notificationSound = soundPref))
                 showSoundPicker = false
+            }
+        )
+    }
+
+    if (showDeleteAccountConfirmOne) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAccountConfirmOne = false },
+            title = { Text("Remove account?") },
+            text = { Text("This will sign you out on this device and stop syncing.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteAccountConfirmOne = false
+                    showDeleteAccountConfirmTwo = true
+                }) {
+                    Text("Continue")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAccountConfirmOne = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showDeleteAccountConfirmTwo) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAccountConfirmTwo = false },
+            title = { Text("Are you sure?") },
+            text = { Text("You’ll need to sign in again to sync your data.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteAccountConfirmTwo = false
+                    onDeleteAccount()
+                }) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAccountConfirmTwo = false }) {
+                    Text("Cancel")
+                }
             }
         )
     }

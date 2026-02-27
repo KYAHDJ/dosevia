@@ -14,6 +14,8 @@ import java.net.URLEncoder
 
 class DriveAppDataService(private val authManager: GoogleAuthManager) {
 
+    class DriveAuthException : Exception("Google Drive authorization is invalid")
+
     companion object {
         const val BACKUP_FILE_NAME = "dosevia_backup_v1.json"
         private const val BASE_DRIVE_FILES_URL = "https://www.googleapis.com/drive/v3/files"
@@ -109,11 +111,16 @@ class DriveAppDataService(private val authManager: GoogleAuthManager) {
     private suspend fun executeWithAuthRetry(buildRequest: (token: String) -> Request): Response? {
         var token = authManager.getAccessToken(forceRefresh = false) ?: return null
         var response = client.newCall(buildRequest(token)).execute()
-        if (response.code != 401) return response
+        if (response.code != 401 && response.code != 403) return response
 
         response.close()
         authManager.clearToken(token)
         token = authManager.getAccessToken(forceRefresh = true) ?: return null
-        return client.newCall(buildRequest(token)).execute()
+        val refreshedResponse = client.newCall(buildRequest(token)).execute()
+        if (refreshedResponse.code == 401 || refreshedResponse.code == 403) {
+            refreshedResponse.close()
+            throw DriveAuthException()
+        }
+        return refreshedResponse
     }
 }

@@ -23,6 +23,7 @@ class GoogleAuthManager(private val context: Context) {
 
     private val appContext = context.applicationContext
     private val accountPrefs = appContext.getSharedPreferences("account_prefs", Context.MODE_PRIVATE)
+    private val accountStateRepository = AccountStateRepository.getInstance(appContext)
 
     private val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestEmail()
@@ -33,32 +34,44 @@ class GoogleAuthManager(private val context: Context) {
 
     fun getSignInIntent(): Intent = signInClient.signInIntent
 
-    fun handleSignInResult(data: Intent?): Result<AccountUiState> {
-        return try {
+    suspend fun handleSignInResult(data: Intent?): Result<AccountUiState> = withContext(Dispatchers.IO) {
+        try {
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             val account = Tasks.await(task)
+
+            val hasDriveScope = GoogleSignIn.hasPermissions(account, Scope(DRIVE_APPDATA_SCOPE))
+            if (!hasDriveScope) {
+                signOutAndClearLocalState(promptDrivePermissionDialog = true)
+                return@withContext Result.failure(IllegalStateException("Drive appData scope not granted"))
+            }
+
+            val token = try {
+                account.account?.let { GoogleAuthUtil.getToken(appContext, it, OAUTH_SCOPE) }
+            } catch (_: UserRecoverableAuthException) {
+                null
+            } catch (_: Exception) {
+                null
+            }
+
+            if (token.isNullOrBlank()) {
+                signOutAndClearLocalState(promptDrivePermissionDialog = true)
+                return@withContext Result.failure(IllegalStateException("Drive token not available"))
+            }
+
             cacheAccount(account)
+            accountPrefs.edit().putString("access_token", token).apply()
+            accountStateRepository.setSignedIn(account.displayName, account.email, account.photoUrl?.toString())
             Result.success(account.toUiState())
         } catch (e: Exception) {
+            signOutAndClearLocalState(promptDrivePermissionDialog = false)
             Result.failure(e)
         }
     }
 
-    fun hasSignedInAccount(): Boolean = GoogleSignIn.getLastSignedInAccount(appContext)?.account != null
+    fun hasSignedInAccount(): Boolean = accountStateRepository.accountState.value.isSignedIn
 
     fun getLastSignedInAccountUiState(): AccountUiState {
-        val account = GoogleSignIn.getLastSignedInAccount(appContext)
-        return if (account != null) {
-            cacheAccount(account)
-            account.toUiState()
-        } else {
-            AccountUiState(
-                isSignedIn = false,
-                displayName = accountPrefs.getString("display_name", null),
-                email = accountPrefs.getString("email", null),
-                photoUrl = accountPrefs.getString("photo_url", null)
-            )
-        }
+        return accountStateRepository.accountState.value
     }
 
     fun currentGoogleAccount(): Account? = GoogleSignIn.getLastSignedInAccount(appContext)?.account
@@ -87,12 +100,16 @@ class GoogleAuthManager(private val context: Context) {
         accountPrefs.edit().remove("access_token").apply()
     }
 
-    fun signOut(onDone: () -> Unit) {
+    fun signOut(onDone: () -> Unit = {}) {
+        signOutAndClearLocalState(promptDrivePermissionDialog = false)
+        onDone()
+    }
+
+    fun signOutAndClearLocalState(promptDrivePermissionDialog: Boolean) {
         clearToken(accountPrefs.getString("access_token", null))
-        signInClient.signOut().addOnCompleteListener {
-            accountPrefs.edit().clear().apply()
-            onDone()
-        }
+        accountStateRepository.clearSignedInState()
+        signInClient.signOut()
+        if (promptDrivePermissionDialog) accountStateRepository.promptDrivePermissionRequired()
     }
 
     private fun cacheAccount(account: GoogleSignInAccount) {
@@ -107,6 +124,7 @@ class GoogleAuthManager(private val context: Context) {
         isSignedIn = true,
         displayName = displayName,
         email = email,
-        photoUrl = photoUrl?.toString()
+        photoUrl = photoUrl?.toString(),
+        syncEnabled = true
     )
 }

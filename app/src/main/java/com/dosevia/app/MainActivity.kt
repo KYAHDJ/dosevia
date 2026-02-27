@@ -60,6 +60,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 
 enum class Screen { HOME, SETTINGS, NOTES, ABOUT_HELP, WIDGET_CUSTOMIZE, WIDGET_THEME_EDITOR }
 
@@ -191,15 +192,22 @@ fun DoseviaApp(activity: MainActivity) {
             val context = LocalContext.current
             val authManager = remember { GoogleAuthManager(context.applicationContext) }
             val cloudSyncManager = remember { CloudSyncManager(context.applicationContext) }
-            var accountUiState by remember { mutableStateOf(authManager.getLastSignedInAccountUiState()) }
+            val accountStateRepository = remember { AccountStateRepository.getInstance(context.applicationContext) }
+            val accountUiState by accountStateRepository.accountState.collectAsState()
+            val showDrivePermissionDialog by accountStateRepository.showDrivePermissionRequiredDialog.collectAsState()
+            val coroutineScope = rememberCoroutineScope()
 
             val signInLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == android.app.Activity.RESULT_OK) {
-                    val signInResult = authManager.handleSignInResult(result.data)
-                    signInResult.onSuccess {
-                        accountUiState = authManager.getLastSignedInAccountUiState()
-                        cloudSyncManager.runInitialSync(onRestored = { viewModel.reloadFromPrefs() })
+                    coroutineScope.launch {
+                        val signInResult = authManager.handleSignInResult(result.data)
+                        signInResult.onSuccess {
+                            cloudSyncManager.startAutomaticSync()
+                            cloudSyncManager.runInitialSync(onRestored = { viewModel.reloadFromPrefs() })
+                        }
                     }
+                } else {
+                    authManager.signOutAndClearLocalState(promptDrivePermissionDialog = true)
                 }
             }
 
@@ -259,17 +267,21 @@ fun DoseviaApp(activity: MainActivity) {
                         accountUiState = accountUiState,
                         onSignInClick = { signInLauncher.launch(authManager.getSignInIntent()) },
                         onSignOutClick = {
-                            authManager.signOut {
-                                accountUiState = authManager.getLastSignedInAccountUiState()
-                            }
+                            authManager.signOut()
+                            cloudSyncManager.clearSyncMetadataAndStopWork()
                         },
                         onNavigate = { currentScreen = it }
                     )
                     Screen.SETTINGS -> SettingsScreen(
-                        viewModel,
+                        viewModel = viewModel,
+                        accountUiState = accountUiState,
                         onBack = { currentScreen = Screen.HOME },
                         onOpenWidgetCustomize = { currentScreen = Screen.WIDGET_CUSTOMIZE },
-                        onOpenAboutHelp = { currentScreen = Screen.ABOUT_HELP }
+                        onOpenAboutHelp = { currentScreen = Screen.ABOUT_HELP },
+                        onDeleteAccount = {
+                            authManager.signOut()
+                            cloudSyncManager.clearSyncMetadataAndStopWork()
+                        }
                     )
                     Screen.NOTES    -> NotesScreen(viewModel, onBack = { currentScreen = Screen.HOME })
                     Screen.ABOUT_HELP -> AboutHelpScreen(
@@ -318,6 +330,31 @@ fun DoseviaApp(activity: MainActivity) {
                                   "for Dosevia.",
                     buttonLabel = "Enable Notifications",
                     onButton    = { activity.requestOrOpenNotificationPermission() }
+                )
+            }
+
+            if (showDrivePermissionDialog) {
+                AlertDialog(
+                    onDismissRequest = {},
+                    title = { Text("Google Drive permission required") },
+                    text = { Text("Google Drive permission is required to sign in and sync your data.") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                accountStateRepository.consumeDrivePermissionRequiredDialog()
+                                signInLauncher.launch(authManager.getSignInIntent())
+                            }
+                        ) {
+                            Text("Try again")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { accountStateRepository.consumeDrivePermissionRequiredDialog() }
+                        ) {
+                            Text("Cancel")
+                        }
+                    }
                 )
             }
         }
