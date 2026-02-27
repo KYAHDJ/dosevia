@@ -37,6 +37,7 @@ class AppViewModel(private val context: Context) : ViewModel() {
     //    This is bulletproof: no JSON parsing, no date serialization issues.
     private val configPrefs = appContext.getSharedPreferences("dosevia_prefs",  Context.MODE_PRIVATE)
     private val statusPrefs = appContext.getSharedPreferences("dosevia_status", Context.MODE_PRIVATE)
+    private val cloudSyncManager = CloudSyncManager(appContext)
 
     private val gson: Gson
     private val keyFmt = SimpleDateFormat("yyyy-MM-dd", Locale.US)
@@ -198,6 +199,7 @@ class AppViewModel(private val context: Context) : ViewModel() {
      */
     fun reloadFromPrefs() {
         loadState()
+        applyAlarm(_state.value.settings, _state.value.days)
         refreshWidgets()
     }
 
@@ -291,6 +293,7 @@ class AppViewModel(private val context: Context) : ViewModel() {
             .putString("notes",            gson.toJson(s.notes))
             .putString("widgetThemes",     gson.toJson(s.widgetThemes))
             .commit()
+        cloudSyncManager.requestSyncDebounced()
         PillWidget.requestUpdate(appContext)
         PillWidgetMedium.requestUpdate(appContext)
         PillWidgetCalendar.requestUpdate(appContext)
