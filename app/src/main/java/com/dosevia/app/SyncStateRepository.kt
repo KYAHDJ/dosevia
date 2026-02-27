@@ -18,6 +18,7 @@ enum class SyncStatus(val value: String) {
 
 data class SyncState(
     val initialSyncCompleted: Boolean = false,
+    val autoUploadEnabled: Boolean = false,
     val lastSyncStatus: SyncStatus = SyncStatus.NOT_SYNCED,
     val lastSyncTime: Long = 0L,
     val lastSyncError: String? = null
@@ -36,6 +37,7 @@ class SyncStateRepository private constructor(context: Context) {
     fun updateAfterSuccess(nowMs: Long = System.currentTimeMillis()) {
         prefs.edit()
             .putBoolean(KEY_INITIAL_SYNC_COMPLETED, true)
+            .putBoolean(KEY_AUTO_UPLOAD_ENABLED, true)
             .putString(KEY_LAST_SYNC_STATUS, SyncStatus.SUCCESS.value)
             .putLong(KEY_LAST_SYNC_TIME, nowMs)
             .remove(KEY_LAST_SYNC_ERROR)
@@ -64,6 +66,18 @@ class SyncStateRepository private constructor(context: Context) {
         publish()
     }
 
+    fun completeInitialChoiceWithoutAutoUpload() {
+        prefs.edit()
+            .putBoolean(KEY_INITIAL_SYNC_COMPLETED, true)
+            .putBoolean(KEY_AUTO_UPLOAD_ENABLED, false)
+            .putString(KEY_LAST_SYNC_STATUS, SyncStatus.NOT_SYNCED.value)
+            .remove(KEY_LAST_SYNC_ERROR)
+            .apply()
+        publish()
+    }
+
+    fun isAutoUploadEnabled(): Boolean = _syncState.value.autoUploadEnabled
+
     fun isInitialSyncCompleted(): Boolean = _initialSyncCompleted.value
 
     private fun publish() {
@@ -75,6 +89,7 @@ class SyncStateRepository private constructor(context: Context) {
     private fun readState(): SyncState {
         return SyncState(
             initialSyncCompleted = prefs.getBoolean(KEY_INITIAL_SYNC_COMPLETED, false),
+            autoUploadEnabled = prefs.getBoolean(KEY_AUTO_UPLOAD_ENABLED, false),
             lastSyncStatus = SyncStatus.from(prefs.getString(KEY_LAST_SYNC_STATUS, null)),
             lastSyncTime = prefs.getLong(KEY_LAST_SYNC_TIME, 0L),
             lastSyncError = prefs.getString(KEY_LAST_SYNC_ERROR, null)
@@ -83,6 +98,7 @@ class SyncStateRepository private constructor(context: Context) {
 
     companion object {
         private const val KEY_INITIAL_SYNC_COMPLETED = "initialSyncCompleted"
+        private const val KEY_AUTO_UPLOAD_ENABLED = "autoUploadEnabled"
         private const val KEY_LAST_SYNC_STATUS = "lastSyncStatus"
         private const val KEY_LAST_SYNC_TIME = "lastSyncTime"
         private const val KEY_LAST_SYNC_ERROR = "lastSyncError"

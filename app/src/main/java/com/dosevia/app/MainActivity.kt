@@ -201,17 +201,13 @@ fun DoseviaApp(activity: MainActivity) {
             val showDrivePermissionDialog by accountStateRepository.showDrivePermissionRequiredDialog.collectAsState()
             val coroutineScope = rememberCoroutineScope()
             val snackbarHostState = remember { SnackbarHostState() }
-            var suppressSyncBannerThisSession by remember { mutableStateOf(false) }
             var showNoBackupDialog by remember { mutableStateOf(false) }
 
             val signInLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == android.app.Activity.RESULT_OK) {
                     coroutineScope.launch {
                         val signInResult = authManager.handleSignInResult(result.data)
-                        signInResult.onSuccess {
-                            suppressSyncBannerThisSession = false
-                            cloudSyncManager.startAutomaticSync()
-                        }
+                        signInResult.onSuccess { }
                     }
                 } else {
                     authManager.signOutAndClearLocalState(promptDrivePermissionDialog = true)
@@ -248,8 +244,6 @@ fun DoseviaApp(activity: MainActivity) {
                 currentScreen = Screen.HOME
             }
 
-            val showSyncBanner = accountUiState.isSignedIn && !initialSyncCompleted && !suppressSyncBannerThisSession
-
             Scaffold(
                 snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
             ) { scaffoldPadding ->
@@ -272,26 +266,10 @@ fun DoseviaApp(activity: MainActivity) {
                     Screen.HOME     -> HomeScreen(
                         viewModel = viewModel,
                         accountUiState = accountUiState,
-                        showSyncBanner = showSyncBanner,
-                        onSyncNowClick = {
-                            cloudSyncManager.syncNow { result ->
-                                when (result) {
-                                    SyncNowResult.RESTORED -> {
-                                        viewModel.reloadFromPrefs()
-                                        coroutineScope.launch { snackbarHostState.showSnackbar("Data restored successfully") }
-                                    }
-                                    SyncNowResult.NO_BACKUP_FOUND -> showNoBackupDialog = true
-                                    SyncNowResult.ERROR -> coroutineScope.launch { snackbarHostState.showSnackbar("Sync failed") }
-                                    else -> Unit
-                                }
-                            }
-                        },
-                        onNotNowClick = { suppressSyncBannerThisSession = true },
                         onSignInClick = { signInLauncher.launch(authManager.getSignInIntent()) },
                         onSignOutClick = {
                             authManager.signOut()
                             cloudSyncManager.clearSyncMetadataAndStopWork()
-                            suppressSyncBannerThisSession = false
                         },
                         onNavigate = { currentScreen = it }
                     )
@@ -305,7 +283,12 @@ fun DoseviaApp(activity: MainActivity) {
                         onDeleteAccount = {
                             authManager.signOut()
                             cloudSyncManager.clearSyncMetadataAndStopWork()
-                            suppressSyncBannerThisSession = false
+                            context.getSharedPreferences("dosevia_prefs", MODE_PRIVATE).edit().clear().commit()
+                            context.getSharedPreferences("dosevia_status", MODE_PRIVATE).edit().clear().commit()
+                            context.getSharedPreferences("sync_state_prefs", MODE_PRIVATE).edit().clear().commit()
+                            cancelAlarm(context)
+                            context.getSharedPreferences("dosevia_prefs", MODE_PRIVATE).edit().remove("alarm_taken_date").commit()
+                            (context as? android.app.Activity)?.recreate()
                         },
                         onSyncNow = {
                             cloudSyncManager.syncNow { result ->
@@ -373,18 +356,58 @@ fun DoseviaApp(activity: MainActivity) {
                 )
             }
 
-            if (showNoBackupDialog) {
+            val showInitialSyncModal = accountUiState.isSignedIn && !initialSyncCompleted
+
+            if (showInitialSyncModal) {
                 AlertDialog(
-                    onDismissRequest = { showNoBackupDialog = false },
-                    title = { Text("No backup found for this account.") },
-                    text = { Text("Create a cloud backup from your current data?") },
+                    onDismissRequest = {},
+                    properties = DialogProperties(
+                        dismissOnBackPress = false,
+                        dismissOnClickOutside = false
+                    ),
+                    title = { Text("Sync your data") },
+                    text = { Text("To continue, choose whether to sync from cloud backup now.") },
                     confirmButton = {
                         TextButton(
                             onClick = {
-                                showNoBackupDialog = false
+                                cloudSyncManager.syncNow { result ->
+                                    when (result) {
+                                        SyncNowResult.RESTORED -> {
+                                            viewModel.reloadFromPrefs()
+                                            coroutineScope.launch { snackbarHostState.showSnackbar("Data restored successfully") }
+                                        }
+                                        SyncNowResult.NO_BACKUP_FOUND -> showNoBackupDialog = true
+                                        SyncNowResult.ERROR -> coroutineScope.launch { snackbarHostState.showSnackbar("Sync failed") }
+                                        else -> Unit
+                                    }
+                                }
+                            }
+                        ) { Text("Sync Now") }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { syncStateRepository.completeInitialChoiceWithoutAutoUpload() }
+                        ) { Text("Do Not Sync") }
+                    }
+                )
+            }
+
+            if (showNoBackupDialog) {
+                AlertDialog(
+                    onDismissRequest = {},
+                    properties = DialogProperties(
+                        dismissOnBackPress = false,
+                        dismissOnClickOutside = false
+                    ),
+                    title = { Text("No backup found.") },
+                    text = { Text("No cloud backup exists for this account.") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
                                 cloudSyncManager.createBackupNow { result ->
                                     when (result) {
                                         SyncNowResult.BACKUP_CREATED -> {
+                                            showNoBackupDialog = false
                                             coroutineScope.launch { snackbarHostState.showSnackbar("Backup created") }
                                         }
                                         SyncNowResult.ERROR -> coroutineScope.launch { snackbarHostState.showSnackbar("Backup failed") }
@@ -392,7 +415,7 @@ fun DoseviaApp(activity: MainActivity) {
                                     }
                                 }
                             }
-                        ) { Text("Create backup") }
+                        ) { Text("Create Backup") }
                     },
                     dismissButton = {
                         TextButton(onClick = { showNoBackupDialog = false }) { Text("Cancel") }

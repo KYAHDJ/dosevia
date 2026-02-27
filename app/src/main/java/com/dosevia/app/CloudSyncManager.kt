@@ -40,6 +40,10 @@ class CloudSyncManager(private val context: Context) {
             Log.d(TAG_SYNC, "Skipping automatic sync registration: initial sync not completed")
             return
         }
+        if (!syncStateRepository.isAutoUploadEnabled()) {
+            Log.d(TAG_SYNC, "Skipping automatic sync registration: auto upload not enabled")
+            return
+        }
         if (listeners.isNotEmpty()) return
 
         SharedPrefsBackupSerializer.findAllPrefsNames(appContext).forEach { prefName ->
@@ -70,6 +74,10 @@ class CloudSyncManager(private val context: Context) {
         if (!authManager.hasSignedInAccount()) return
         if (!syncStateRepository.isInitialSyncCompleted()) {
             Log.d(TAG_SYNC, "Skipping schedule: initial sync not completed")
+            return
+        }
+        if (!syncStateRepository.isAutoUploadEnabled()) {
+            Log.d(TAG_SYNC, "Skipping schedule: auto upload not enabled")
             return
         }
 
@@ -164,6 +172,10 @@ class CloudSyncManager(private val context: Context) {
     suspend fun uploadNow(): Boolean {
         if (!syncStateRepository.isInitialSyncCompleted()) {
             Log.d(TAG_SYNC, "Worker upload skipped: initial sync not completed")
+            return false
+        }
+        if (!syncStateRepository.isAutoUploadEnabled()) {
+            Log.d(TAG_SYNC, "Worker upload skipped: auto upload not enabled")
             return false
         }
 
