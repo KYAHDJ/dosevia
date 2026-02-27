@@ -53,6 +53,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.dosevia.app.ui.theme.*
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  Main Settings Screen
@@ -63,10 +66,12 @@ import java.io.File
 fun SettingsScreen(
     viewModel: AppViewModel,
     accountUiState: AccountUiState,
+    syncState: SyncState,
     onBack: () -> Unit,
     onOpenWidgetCustomize: () -> Unit,
     onOpenAboutHelp: () -> Unit,
-    onDeleteAccount: () -> Unit
+    onDeleteAccount: () -> Unit,
+    onSyncNow: () -> Unit
 ) {
     val state    by viewModel.state.collectAsState()
     val settings = state.settings
@@ -250,6 +255,29 @@ fun SettingsScreen(
                     }
                 }
 
+
+                SettingsSection("SYNC", secLblSp) {
+                    SettingsChevronRow(
+                        icon = Icons.Default.Sync,
+                        iconBg = Color(0xFFCA8A04),
+                        title = "Sync now",
+                        sub = "Restore from cloud or create backup",
+                        enabled = accountUiState.isSignedIn,
+                        onClick = onSyncNow,
+                        lblSp = rowLblSp,
+                        subSp = rowSubSp
+                    )
+                    HorizontalDivider(color = Color(0xFFF3F4F6))
+                    SettingsInfoRow(
+                        icon = Icons.Default.CloudDone,
+                        iconBg = Color(0xFF16A34A),
+                        title = "Sync status",
+                        sub = formatSyncStatus(syncState),
+                        lblSp = rowLblSp,
+                        subSp = rowSubSp
+                    )
+                }
+
                 // ── WIDGETS ───────────────────────────────────────────────────
                 SettingsSection("WIDGETS", secLblSp) {
                     SettingsChevronRow(
@@ -401,6 +429,19 @@ fun SettingsScreen(
                 }
             }
         )
+    }
+}
+
+
+private fun formatSyncStatus(syncState: SyncState): String {
+    return when (syncState.lastSyncStatus) {
+        SyncStatus.NOT_SYNCED -> "Not synced yet"
+        SyncStatus.SUCCESS -> {
+            if (syncState.lastSyncTime <= 0L) "Not synced yet"
+            else "Last synced: " + SimpleDateFormat("MMM d, yyyy h:mm a", Locale.getDefault()).format(Date(syncState.lastSyncTime))
+        }
+        SyncStatus.NO_BACKUP -> "No backup found"
+        SyncStatus.ERROR -> "Last error: ${syncState.lastSyncError ?: "Unknown error"}"
     }
 }
 
@@ -996,6 +1037,31 @@ private fun SettingsToggleRow(
                 disabledUncheckedThumbColor = Color.White, disabledUncheckedTrackColor = Color(0xFFE5E7EB)
             )
         )
+    }
+}
+
+
+@Composable
+private fun SettingsInfoRow(
+    icon: ImageVector,
+    iconBg: Color,
+    title: String,
+    sub: String,
+    lblSp: androidx.compose.ui.unit.TextUnit,
+    subSp: androidx.compose.ui.unit.TextUnit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 14.dp)
+    ) {
+        RowIcon(icon, iconBg)
+        Spacer(Modifier.width(14.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, fontSize = lblSp, fontWeight = FontWeight.Medium, color = Color(0xFF111827))
+            Text(sub, fontSize = subSp, color = Color(0xFF6B7280))
+        }
     }
 }
 

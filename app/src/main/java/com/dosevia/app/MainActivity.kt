@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -193,17 +194,23 @@ fun DoseviaApp(activity: MainActivity) {
             val authManager = remember { GoogleAuthManager(context.applicationContext) }
             val cloudSyncManager = remember { CloudSyncManager(context.applicationContext) }
             val accountStateRepository = remember { AccountStateRepository.getInstance(context.applicationContext) }
+            val syncStateRepository = remember { SyncStateRepository.getInstance(context.applicationContext) }
             val accountUiState by accountStateRepository.accountState.collectAsState()
+            val syncState by syncStateRepository.syncState.collectAsState()
+            val initialSyncCompleted by syncStateRepository.initialSyncCompleted.collectAsState()
             val showDrivePermissionDialog by accountStateRepository.showDrivePermissionRequiredDialog.collectAsState()
             val coroutineScope = rememberCoroutineScope()
+            val snackbarHostState = remember { SnackbarHostState() }
+            var suppressSyncBannerThisSession by remember { mutableStateOf(false) }
+            var showNoBackupDialog by remember { mutableStateOf(false) }
 
             val signInLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == android.app.Activity.RESULT_OK) {
                     coroutineScope.launch {
                         val signInResult = authManager.handleSignInResult(result.data)
                         signInResult.onSuccess {
+                            suppressSyncBannerThisSession = false
                             cloudSyncManager.startAutomaticSync()
-                            cloudSyncManager.runInitialSync(onRestored = { viewModel.reloadFromPrefs() })
                         }
                     }
                 } else {
@@ -213,12 +220,6 @@ fun DoseviaApp(activity: MainActivity) {
 
             var currentScreen by remember { mutableStateOf(Screen.HOME) }
             var selectedWidget by remember { mutableStateOf(WidgetKind.SMALL) }
-
-            LaunchedEffect(Unit) {
-                if (authManager.hasSignedInAccount()) {
-                    cloudSyncManager.runInitialSync(onRestored = { viewModel.reloadFromPrefs() })
-                }
-            }
 
             // Re-evaluate permissions every time app comes back to foreground
             val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -247,6 +248,11 @@ fun DoseviaApp(activity: MainActivity) {
                 currentScreen = Screen.HOME
             }
 
+            val showSyncBanner = accountUiState.isSignedIn && !initialSyncCompleted && !suppressSyncBannerThisSession
+
+            Scaffold(
+                snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+            ) { scaffoldPadding ->
             // ── App content (always rendered, gated by modals above it) ────────
             AnimatedContent(
                 targetState = currentScreen,
@@ -259,28 +265,60 @@ fun DoseviaApp(activity: MainActivity) {
                         (slideOutHorizontally(tween(280)) { -it } + fadeOut(tween(200)))
                     }
                 },
-                label = "screenNav"
+                label = "screenNav",
+                modifier = Modifier.padding(scaffoldPadding)
             ) { screen ->
                 when (screen) {
                     Screen.HOME     -> HomeScreen(
                         viewModel = viewModel,
                         accountUiState = accountUiState,
+                        showSyncBanner = showSyncBanner,
+                        onSyncNowClick = {
+                            cloudSyncManager.syncNow { result ->
+                                when (result) {
+                                    SyncNowResult.RESTORED -> {
+                                        viewModel.reloadFromPrefs()
+                                        coroutineScope.launch { snackbarHostState.showSnackbar("Data restored successfully") }
+                                    }
+                                    SyncNowResult.NO_BACKUP_FOUND -> showNoBackupDialog = true
+                                    SyncNowResult.ERROR -> coroutineScope.launch { snackbarHostState.showSnackbar("Sync failed") }
+                                    else -> Unit
+                                }
+                            }
+                        },
+                        onNotNowClick = { suppressSyncBannerThisSession = true },
                         onSignInClick = { signInLauncher.launch(authManager.getSignInIntent()) },
                         onSignOutClick = {
                             authManager.signOut()
                             cloudSyncManager.clearSyncMetadataAndStopWork()
+                            suppressSyncBannerThisSession = false
                         },
                         onNavigate = { currentScreen = it }
                     )
                     Screen.SETTINGS -> SettingsScreen(
                         viewModel = viewModel,
                         accountUiState = accountUiState,
+                        syncState = syncState,
                         onBack = { currentScreen = Screen.HOME },
                         onOpenWidgetCustomize = { currentScreen = Screen.WIDGET_CUSTOMIZE },
                         onOpenAboutHelp = { currentScreen = Screen.ABOUT_HELP },
                         onDeleteAccount = {
                             authManager.signOut()
                             cloudSyncManager.clearSyncMetadataAndStopWork()
+                            suppressSyncBannerThisSession = false
+                        },
+                        onSyncNow = {
+                            cloudSyncManager.syncNow { result ->
+                                when (result) {
+                                    SyncNowResult.RESTORED -> {
+                                        viewModel.reloadFromPrefs()
+                                        coroutineScope.launch { snackbarHostState.showSnackbar("Data restored successfully") }
+                                    }
+                                    SyncNowResult.NO_BACKUP_FOUND -> showNoBackupDialog = true
+                                    SyncNowResult.ERROR -> coroutineScope.launch { snackbarHostState.showSnackbar("Sync failed") }
+                                    else -> Unit
+                                }
+                            }
                         }
                     )
                     Screen.NOTES    -> NotesScreen(viewModel, onBack = { currentScreen = Screen.HOME })
@@ -300,6 +338,8 @@ fun DoseviaApp(activity: MainActivity) {
                         onBack = { currentScreen = Screen.WIDGET_CUSTOMIZE }
                     )
                 }
+            }
+
             }
 
             // ── Step 1: Battery gate — shown first, blocks everything ──────────
@@ -330,6 +370,33 @@ fun DoseviaApp(activity: MainActivity) {
                                   "for Dosevia.",
                     buttonLabel = "Enable Notifications",
                     onButton    = { activity.requestOrOpenNotificationPermission() }
+                )
+            }
+
+            if (showNoBackupDialog) {
+                AlertDialog(
+                    onDismissRequest = { showNoBackupDialog = false },
+                    title = { Text("No backup found for this account.") },
+                    text = { Text("Create a cloud backup from your current data?") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showNoBackupDialog = false
+                                cloudSyncManager.createBackupNow { result ->
+                                    when (result) {
+                                        SyncNowResult.BACKUP_CREATED -> {
+                                            coroutineScope.launch { snackbarHostState.showSnackbar("Backup created") }
+                                        }
+                                        SyncNowResult.ERROR -> coroutineScope.launch { snackbarHostState.showSnackbar("Backup failed") }
+                                        else -> Unit
+                                    }
+                                }
+                            }
+                        ) { Text("Create backup") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showNoBackupDialog = false }) { Text("Cancel") }
+                    }
                 )
             }
 

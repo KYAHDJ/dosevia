@@ -38,6 +38,9 @@ import java.util.*
 fun HomeScreen(
     viewModel: AppViewModel,
     accountUiState: AccountUiState = AccountUiState(),
+    showSyncBanner: Boolean = false,
+    onSyncNowClick: () -> Unit = {},
+    onNotNowClick: () -> Unit = {},
     onSignInClick: () -> Unit = {},
     onSignOutClick: () -> Unit = {},
     onNavigate: (Screen) -> Unit = {}
@@ -136,6 +139,28 @@ fun HomeScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(vertical = 16.dp)
             ) {
+                if (showSyncBanner) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3BF)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = headerPadH)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = "Sync now to restore your data",
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF7C5A00)
+                            )
+                            Spacer(Modifier.height(10.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Button(onClick = onSyncNowClick) { Text("Sync now") }
+                                OutlinedButton(onClick = onNotNowClick) { Text("Not now") }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                }
 
                 QuickNotePromptCard(
                     visible = showQuickNoteCard,
