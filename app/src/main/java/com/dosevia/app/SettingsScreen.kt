@@ -71,7 +71,8 @@ fun SettingsScreen(
     onOpenWidgetCustomize: () -> Unit,
     onOpenAboutHelp: () -> Unit,
     onDeleteAccount: () -> Unit,
-    onSyncNow: () -> Unit
+    onSyncNow: () -> Unit,
+    onClearBlister: () -> Unit
 ) {
     val state    by viewModel.state.collectAsState()
     val settings = state.settings
@@ -84,6 +85,7 @@ fun SettingsScreen(
     var showSoundPicker  by remember { mutableStateOf(false) }
     var showDeleteAccountConfirmOne by remember { mutableStateOf(false) }
     var showDeleteAccountConfirmTwo by remember { mutableStateOf(false) }
+    var showClearBlisterConfirm by remember { mutableStateOf(false) }
     var tempText         by remember { mutableStateOf("") }
 
     val gradient = Brush.linearGradient(listOf(Color(0xFFF609BC), Color(0xFFFAB86D)))
@@ -256,11 +258,21 @@ fun SettingsScreen(
                 }
 
 
-                SettingsSection("SYNC", secLblSp) {
+                SettingsSection("CLOUD SYNC", secLblSp) {
+                    val syncEnabled = syncState.autoUploadEnabled
+                    SettingsInfoRow(
+                        icon = if (syncEnabled) Icons.Default.CloudDone else Icons.Default.CloudOff,
+                        iconBg = if (syncEnabled) Color(0xFF16A34A) else Color(0xFFB45309),
+                        title = "Cloud Sync",
+                        sub = if (syncEnabled) "Sync ON" else "Sync OFF – changes saved only on this device",
+                        lblSp = rowLblSp,
+                        subSp = rowSubSp
+                    )
+                    HorizontalDivider(color = Color(0xFFF3F4F6))
                     SettingsChevronRow(
                         icon = Icons.Default.Sync,
                         iconBg = Color(0xFFCA8A04),
-                        title = "Sync now",
+                        title = "Enable Sync Now",
                         sub = "Restore from cloud or create backup",
                         enabled = accountUiState.isSignedIn,
                         onClick = onSyncNow,
@@ -269,9 +281,9 @@ fun SettingsScreen(
                     )
                     HorizontalDivider(color = Color(0xFFF3F4F6))
                     SettingsInfoRow(
-                        icon = Icons.Default.CloudDone,
-                        iconBg = Color(0xFF16A34A),
-                        title = "Sync status",
+                        icon = Icons.Default.Schedule,
+                        iconBg = Color(0xFF6B7280),
+                        title = "Last sync",
                         sub = formatSyncStatus(syncState),
                         lblSp = rowLblSp,
                         subSp = rowSubSp
@@ -311,6 +323,17 @@ fun SettingsScreen(
                         enabled = true,
                         onClick = { },
                         lblSp   = rowLblSp, subSp = rowSubSp
+                    )
+                    HorizontalDivider(color = Color(0xFFF3F4F6))
+                    SettingsChevronRow(
+                        icon = Icons.Default.RestartAlt,
+                        iconBg = Color(0xFFDC2626),
+                        title = "Clear blister data",
+                        sub = "Resets all pill taken/missed status history (does not remove your pill type/settings).",
+                        enabled = true,
+                        onClick = { showClearBlisterConfirm = true },
+                        lblSp = rowLblSp,
+                        subSp = rowSubSp
                     )
 
                     if (accountUiState.isSignedIn) {
@@ -425,6 +448,27 @@ fun SettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteAccountConfirmTwo = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showClearBlisterConfirm) {
+        AlertDialog(
+            onDismissRequest = { showClearBlisterConfirm = false },
+            title = { Text("Clear blister?") },
+            text = { Text("This will reset all pill status history (taken/missed) and cannot be undone.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showClearBlisterConfirm = false
+                    onClearBlister()
+                }) {
+                    Text("Clear", color = Color(0xFFDC2626))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearBlisterConfirm = false }) {
                     Text("Cancel")
                 }
             }

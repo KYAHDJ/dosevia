@@ -97,29 +97,45 @@ class CloudSyncManager(private val context: Context) {
         Log.d(TAG_SYNC, "Scheduled cloud sync worker with delay=${delayMs}ms")
     }
 
-    fun syncNow(onComplete: (SyncNowResult) -> Unit) {
+    fun checkCloudBackupExists(onComplete: (exists: Boolean, error: Throwable?) -> Unit) {
+        if (!authManager.hasSignedInAccount()) {
+            onComplete(false, IllegalStateException("Not signed in"))
+            return
+        }
+
+        scope.launch {
+            try {
+                val fileId = driveService.findBackupFileId()
+                withContext(Dispatchers.Main) { onComplete(fileId != null, null) }
+            } catch (e: Exception) {
+                if (e is DriveAppDataService.DriveAuthException) {
+                    authManager.signOutAndClearLocalState(promptDrivePermissionDialog = true)
+                    clearSyncMetadataAndStopWork()
+                }
+                withContext(Dispatchers.Main) { onComplete(false, e) }
+            }
+        }
+    }
+
+    fun restoreFromCloudNow(onComplete: (SyncNowResult) -> Unit) {
         if (!authManager.hasSignedInAccount()) {
             onComplete(SyncNowResult.NOT_SIGNED_IN)
             return
         }
 
         scope.launch {
-            Log.d(TAG_SYNC, "SyncNow started")
+            Log.d(TAG_SYNC, "RestoreFromCloud started")
             try {
                 val fileId = driveService.findBackupFileId()
                 if (fileId == null) {
-                    Log.d(TAG_SYNC, "Backup file not found")
                     syncStateRepository.setNoBackupFound()
                     completeOnMain(onComplete, SyncNowResult.NO_BACKUP_FOUND)
                     return@launch
                 }
 
-                Log.d(TAG_SYNC, "Backup file found")
                 val cloudJson = driveService.downloadBackup(fileId)
-                Log.d(TAG_SYNC, "Download success")
                 val payload = SharedPrefsBackupSerializer.fromJson(cloudJson)
                 SharedPrefsBackupSerializer.restoreAllPrefs(appContext, payload)
-                Log.d(TAG_SYNC, "Restore applied")
                 syncStateRepository.updateAfterSuccess()
                 startAutomaticSync()
                 completeOnMain(onComplete, SyncNowResult.RESTORED)
@@ -128,11 +144,14 @@ class CloudSyncManager(private val context: Context) {
                     authManager.signOutAndClearLocalState(promptDrivePermissionDialog = true)
                     clearSyncMetadataAndStopWork()
                 }
-                Log.d(TAG_SYNC, "Download failure", e)
                 syncStateRepository.setError(e.message)
                 completeOnMain(onComplete, SyncNowResult.ERROR)
             }
         }
+    }
+
+    fun syncNow(onComplete: (SyncNowResult) -> Unit) {
+        restoreFromCloudNow(onComplete)
     }
 
     fun createBackupNow(onComplete: (SyncNowResult) -> Unit) {
