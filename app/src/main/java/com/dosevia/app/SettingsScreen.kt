@@ -16,6 +16,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.net.Uri
+import android.widget.Toast
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -25,11 +26,14 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -39,14 +43,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
@@ -56,6 +63,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  Main Settings Screen
@@ -70,6 +78,7 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onOpenWidgetCustomize: () -> Unit,
     onOpenAboutHelp: () -> Unit,
+    onSignOut: () -> Unit,
     onDeleteAccount: () -> Unit,
     onSyncNow: () -> Unit,
     onClearBlister: () -> Unit
@@ -87,9 +96,41 @@ fun SettingsScreen(
     var showDeleteAccountConfirmTwo by remember { mutableStateOf(false) }
     var showClearBlisterConfirm by remember { mutableStateOf(false) }
     var tempText         by remember { mutableStateOf("") }
+    var profileNameInput by remember(state.profileName) { mutableStateOf(state.profileName) }
+    val coroutineScope = rememberCoroutineScope()
+    val profileBitmap = remember(state.profilePhotoB64) { decodeBase64Bitmap(state.profilePhotoB64) }
 
     val gradient = Brush.linearGradient(listOf(Color(0xFFF609BC), Color(0xFFFAB86D)))
     val masterOn = settings.appActive
+
+    val pickPhotoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        coroutineScope.launch {
+            val encoded = encodeProfilePhotoToBase64(context, uri)
+            if (encoded.isBlank()) {
+                Toast.makeText(context, "Could not process image", Toast.LENGTH_SHORT).show()
+            } else {
+                viewModel.updateProfilePhoto(encoded)
+            }
+        }
+    }
+    val fallbackPhotoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        coroutineScope.launch {
+            val encoded = encodeProfilePhotoToBase64(context, uri)
+            if (encoded.isBlank()) {
+                Toast.makeText(context, "Could not process image", Toast.LENGTH_SHORT).show()
+            } else {
+                viewModel.updateProfilePhoto(encoded)
+            }
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            if (profileNameInput != state.profileName) viewModel.updateProfileName(profileNameInput.trim())
+        }
+    }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize().background(Color(0xFFFFF0FB))) {
         val isTablet = maxWidth >= 480.dp
@@ -258,6 +299,76 @@ fun SettingsScreen(
                 }
 
 
+                SettingsSection("PROFILE", secLblSp) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth().padding(14.dp)
+                    ) {
+                        if (profileBitmap != null) {
+                            Image(
+                                bitmap = profileBitmap.asImageBitmap(),
+                                contentDescription = "Profile photo",
+                                modifier = Modifier.size(52.dp).clip(CircleShape)
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.AccountCircle,
+                                contentDescription = null,
+                                tint = Color(0xFF9CA3AF),
+                                modifier = Modifier.size(52.dp)
+                            )
+                        }
+
+                        OutlinedTextField(
+                            value = profileNameInput,
+                            onValueChange = { profileNameInput = it },
+                            label = { Text("Profile name") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = {
+                                viewModel.updateProfileName(profileNameInput.trim())
+                            }),
+                            modifier = Modifier
+                                .weight(1f)
+                                .onFocusChanged { focusState ->
+                                    if (!focusState.isFocused && profileNameInput != state.profileName) {
+                                        viewModel.updateProfileName(profileNameInput.trim())
+                                    }
+                                }
+                        )
+                    }
+                    HorizontalDivider(color = Color(0xFFF3F4F6))
+                    SettingsChevronRow(
+                        icon = Icons.Default.PhotoCamera,
+                        iconBg = Color(0xFF2563EB),
+                        title = "Change Photo",
+                        sub = "Saved as synced thumbnail",
+                        enabled = true,
+                        onClick = {
+                            try {
+                                pickPhotoLauncher.launch(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            } catch (_: Exception) {
+                                fallbackPhotoLauncher.launch("image/*")
+                            }
+                        },
+                        lblSp = rowLblSp,
+                        subSp = rowSubSp
+                    )
+                    HorizontalDivider(color = Color(0xFFF3F4F6))
+                    SettingsChevronRow(
+                        icon = Icons.Default.DeleteSweep,
+                        iconBg = Color(0xFFDC2626),
+                        title = "Remove Photo",
+                        sub = "Use default avatar",
+                        enabled = state.profilePhotoB64.isNotBlank(),
+                        onClick = { viewModel.clearProfilePhoto() },
+                        lblSp = rowLblSp,
+                        subSp = rowSubSp
+                    )
+                }
+
+
                 SettingsSection("CLOUD SYNC", secLblSp) {
                     val syncEnabled = syncState.autoUploadEnabled
                     SettingsInfoRow(
@@ -339,10 +450,21 @@ fun SettingsScreen(
                     if (accountUiState.isSignedIn) {
                         HorizontalDivider(color = Color(0xFFF3F4F6))
                         SettingsChevronRow(
+                            icon = Icons.Default.Logout,
+                            iconBg = Color(0xFF6B7280),
+                            title = "Sign out",
+                            sub = "Sign out on this device",
+                            enabled = true,
+                            onClick = onSignOut,
+                            lblSp = rowLblSp,
+                            subSp = rowSubSp
+                        )
+                        HorizontalDivider(color = Color(0xFFF3F4F6))
+                        SettingsChevronRow(
                             icon = Icons.Default.DeleteForever,
                             iconBg = Color(0xFFDC2626),
                             title = "Delete account",
-                            sub = "Sign out on this device and stop syncing",
+                            sub = "Reset app data and stop syncing",
                             enabled = true,
                             onClick = { showDeleteAccountConfirmOne = true },
                             lblSp = rowLblSp,

@@ -15,13 +15,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -29,7 +28,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.dosevia.app.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -41,7 +39,6 @@ fun HomeScreen(
     isSyncOffWarningVisible: Boolean = false,
     onEnableSyncNow: () -> Unit = {},
     onSignInClick: () -> Unit = {},
-    onSignOutClick: () -> Unit = {},
     onNavigate: (Screen) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsState()
@@ -100,7 +97,8 @@ fun HomeScreen(
                         subtitleFontSp = subtitleFontSp,
                         accountUiState = accountUiState,
                         onSignInClick = onSignInClick,
-                        onSignOutClick = onSignOutClick
+                        profileName = state.profileName,
+                        profilePhotoB64 = state.profilePhotoB64
                     )
 
                     Spacer(Modifier.height(14.dp))
@@ -681,9 +679,11 @@ private fun HeaderAccountRow(
     subtitleFontSp: androidx.compose.ui.unit.TextUnit,
     accountUiState: AccountUiState,
     onSignInClick: () -> Unit,
-    onSignOutClick: () -> Unit
+    profileName: String,
+    profilePhotoB64: String
 ) {
-    var showMenu by remember { mutableStateOf(false) }
+    val displayName = profileName.ifBlank { accountUiState.displayName ?: "User" }
+    val profileBitmap = remember(profilePhotoB64) { decodeBase64Bitmap(profilePhotoB64) }
 
     Box(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -704,14 +704,13 @@ private fun HeaderAccountRow(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .clickable { showMenu = true }
                         .background(Color.White.copy(alpha = 0.15f))
                         .padding(horizontal = 10.dp, vertical = 6.dp)
                 ) {
-                    if (!accountUiState.photoUrl.isNullOrBlank()) {
-                        AsyncImage(
-                            model = accountUiState.photoUrl,
-                            contentDescription = "Account photo",
+                    if (profileBitmap != null) {
+                        Image(
+                            bitmap = profileBitmap.asImageBitmap(),
+                            contentDescription = "Profile photo",
                             modifier = Modifier.size(26.dp).clip(CircleShape)
                         )
                     } else {
@@ -719,20 +718,11 @@ private fun HeaderAccountRow(
                     }
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        text = accountUiState.displayName ?: "Google",
+                        text = displayName,
                         color = Color.White,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.widthIn(max = 120.dp)
-                    )
-                }
-                DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
-                    DropdownMenuItem(
-                        text = { Text("Sign out") },
-                        onClick = {
-                            showMenu = false
-                            onSignOutClick()
-                        }
                     )
                 }
             }
