@@ -38,6 +38,8 @@ import java.util.*
 fun HomeScreen(
     viewModel: AppViewModel,
     accountUiState: AccountUiState = AccountUiState(),
+    isSyncOffWarningVisible: Boolean = false,
+    onEnableSyncNow: () -> Unit = {},
     onSignInClick: () -> Unit = {},
     onSignOutClick: () -> Unit = {},
     onNavigate: (Screen) -> Unit = {}
@@ -136,6 +138,35 @@ fun HomeScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(vertical = 16.dp)
             ) {
+                if (isSyncOffWarningVisible) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF7ED)),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = headerPadH)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(12.dp)
+                        ) {
+                            Icon(Icons.Default.WarningAmber, null, tint = Color(0xFFB45309))
+                            Spacer(Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Sync is OFF. Your changes are only saved on this device.",
+                                    fontSize = 12.sp,
+                                    color = Color(0xFF92400E),
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                            TextButton(onClick = onEnableSyncNow) {
+                                Text("Enable Sync")
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(10.dp))
+                }
                 QuickNotePromptCard(
                     visible = showQuickNoteCard,
                     selectedNote = selectedQuickNote,

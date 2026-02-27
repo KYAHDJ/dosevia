@@ -202,6 +202,37 @@ fun DoseviaApp(activity: MainActivity) {
             val coroutineScope = rememberCoroutineScope()
             val snackbarHostState = remember { SnackbarHostState() }
             var showNoBackupDialog by remember { mutableStateOf(false) }
+            var showRestoreFromCloudConfirmDialog by remember { mutableStateOf(false) }
+            var showCreateBackupFromDeviceDialog by remember { mutableStateOf(false) }
+
+            fun runSyncNowFlow() {
+                if (!syncState.autoUploadEnabled) {
+                    cloudSyncManager.checkCloudBackupExists { exists, error ->
+                        if (error != null) {
+                            coroutineScope.launch { snackbarHostState.showSnackbar("Sync failed") }
+                            return@checkCloudBackupExists
+                        }
+                        if (exists) {
+                            showRestoreFromCloudConfirmDialog = true
+                        } else {
+                            showCreateBackupFromDeviceDialog = true
+                        }
+                    }
+                    return
+                }
+
+                cloudSyncManager.syncNow { result ->
+                    when (result) {
+                        SyncNowResult.RESTORED -> {
+                            viewModel.reloadFromPrefs()
+                            coroutineScope.launch { snackbarHostState.showSnackbar("Data restored successfully") }
+                        }
+                        SyncNowResult.NO_BACKUP_FOUND -> showNoBackupDialog = true
+                        SyncNowResult.ERROR -> coroutineScope.launch { snackbarHostState.showSnackbar("Sync failed") }
+                        else -> Unit
+                    }
+                }
+            }
 
             val signInLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == android.app.Activity.RESULT_OK) {
@@ -266,6 +297,8 @@ fun DoseviaApp(activity: MainActivity) {
                     Screen.HOME     -> HomeScreen(
                         viewModel = viewModel,
                         accountUiState = accountUiState,
+                        isSyncOffWarningVisible = accountUiState.isSignedIn && !syncState.autoUploadEnabled,
+                        onEnableSyncNow = ::runSyncNowFlow,
                         onSignInClick = { signInLauncher.launch(authManager.getSignInIntent()) },
                         onSignOutClick = {
                             authManager.signOut()
@@ -290,19 +323,8 @@ fun DoseviaApp(activity: MainActivity) {
                             context.getSharedPreferences("dosevia_prefs", MODE_PRIVATE).edit().remove("alarm_taken_date").commit()
                             (context as? android.app.Activity)?.recreate()
                         },
-                        onSyncNow = {
-                            cloudSyncManager.syncNow { result ->
-                                when (result) {
-                                    SyncNowResult.RESTORED -> {
-                                        viewModel.reloadFromPrefs()
-                                        coroutineScope.launch { snackbarHostState.showSnackbar("Data restored successfully") }
-                                    }
-                                    SyncNowResult.NO_BACKUP_FOUND -> showNoBackupDialog = true
-                                    SyncNowResult.ERROR -> coroutineScope.launch { snackbarHostState.showSnackbar("Sync failed") }
-                                    else -> Unit
-                                }
-                            }
-                        }
+                        onSyncNow = ::runSyncNowFlow,
+                        onClearBlister = { viewModel.clearBlister() }
                     )
                     Screen.NOTES    -> NotesScreen(viewModel, onBack = { currentScreen = Screen.HOME })
                     Screen.ABOUT_HELP -> AboutHelpScreen(
@@ -419,6 +441,61 @@ fun DoseviaApp(activity: MainActivity) {
                     },
                     dismissButton = {
                         TextButton(onClick = { showNoBackupDialog = false }) { Text("Cancel") }
+                    }
+                )
+            }
+
+            if (showRestoreFromCloudConfirmDialog) {
+                AlertDialog(
+                    onDismissRequest = { showRestoreFromCloudConfirmDialog = false },
+                    title = { Text("Restore from cloud?") },
+                    text = { Text("This will replace your current local data on this device with the cloud backup. Local changes made while sync was OFF may be lost.") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showRestoreFromCloudConfirmDialog = false
+                                cloudSyncManager.restoreFromCloudNow { result ->
+                                    when (result) {
+                                        SyncNowResult.RESTORED -> {
+                                            viewModel.reloadFromPrefs()
+                                            coroutineScope.launch { snackbarHostState.showSnackbar("Data restored successfully") }
+                                        }
+                                        SyncNowResult.ERROR -> coroutineScope.launch { snackbarHostState.showSnackbar("Sync failed") }
+                                        else -> Unit
+                                    }
+                                }
+                            }
+                        ) { Text("Restore Cloud") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showRestoreFromCloudConfirmDialog = false }) { Text("Cancel") }
+                    }
+                )
+            }
+
+            if (showCreateBackupFromDeviceDialog) {
+                AlertDialog(
+                    onDismissRequest = { showCreateBackupFromDeviceDialog = false },
+                    title = { Text("No cloud backup found") },
+                    text = { Text("No cloud backup found. Create one from this device?") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showCreateBackupFromDeviceDialog = false
+                                cloudSyncManager.createBackupNow { result ->
+                                    when (result) {
+                                        SyncNowResult.BACKUP_CREATED -> coroutineScope.launch {
+                                            snackbarHostState.showSnackbar("Backup created")
+                                        }
+                                        SyncNowResult.ERROR -> coroutineScope.launch { snackbarHostState.showSnackbar("Backup failed") }
+                                        else -> Unit
+                                    }
+                                }
+                            }
+                        ) { Text("Create Backup") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showCreateBackupFromDeviceDialog = false }) { Text("Cancel") }
                     }
                 )
             }

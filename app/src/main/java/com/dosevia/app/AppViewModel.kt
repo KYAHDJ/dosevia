@@ -373,6 +373,14 @@ class AppViewModel(private val context: Context) : ViewModel() {
         saveConfig()
     }
 
+    fun clearBlister() {
+        Log.d("ClearBlister", "Clearing dosevia_status")
+        statusPrefs.edit().clear().commit()
+        Log.d("ClearBlister", "Cleared")
+        reloadFromPrefs()
+        cloudSyncManager.requestSyncDebounced()
+    }
+
     fun updateWidgetTheme(kind: WidgetKind, colors: WidgetThemeColors) {
         val updatedThemes = when (kind) {
             WidgetKind.SMALL -> _state.value.widgetThemes.copy(small = colors)
