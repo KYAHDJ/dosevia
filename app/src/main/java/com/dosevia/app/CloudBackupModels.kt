@@ -11,5 +11,6 @@ data class AccountUiState(
     val isSignedIn: Boolean = false,
     val displayName: String? = null,
     val email: String? = null,
-    val photoUrl: String? = null
+    val photoUrl: String? = null,
+    val syncEnabled: Boolean = false
 )

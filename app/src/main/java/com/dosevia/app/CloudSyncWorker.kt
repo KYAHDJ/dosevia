@@ -14,6 +14,8 @@ class CloudSyncWorker(
         return try {
             syncManager.uploadNowWithConflictProtection()
             Result.success()
+        } catch (_: DriveAppDataService.DriveAuthException) {
+            Result.failure()
         } catch (_: Exception) {
             Result.retry()
         }
