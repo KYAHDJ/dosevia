@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bottom half of pill — flat at top, fully rounded at bottom -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners
+        android:topLeftRadius="0dp"
+        android:topRightRadius="0dp"
+        android:bottomLeftRadius="60dp"
+        android:bottomRightRadius="60dp" />
+    <solid android:color="#FFFFFF" />
+</shape>

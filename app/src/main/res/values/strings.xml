@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dosevia</string>
+    <string name="admob_app_id">ca-app-pub-9372606273046322~1037791328</string>
+    <string name="admob_banner_unit_id">ca-app-pub-9372606273046322/6102891104</string>
+    <string name="admob_app_open_unit_id">ca-app-pub-9372606273046322/9902059958</string>
+</resources>
