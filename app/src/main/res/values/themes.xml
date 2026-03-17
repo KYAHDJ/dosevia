@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Dosevia" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Transparent status bar so our Compose headers/gradients reach the very top. -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+</resources>
