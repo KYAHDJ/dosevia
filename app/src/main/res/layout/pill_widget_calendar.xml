@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetCalendarRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="4dp">
+
+    <!--
+      The calendar is rendered as a bitmap (RemoteViews-safe). The action buttons are OVERLAID
+      within the widget bounds so they "belong" visually inside the calendar (not below/outside).
+    -->
+    <ImageView
+        android:id="@+id/widgetCalendarImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="Dosevia pill calendar widget"
+        android:scaleType="fitCenter" />
+
+    <LinearLayout
+        android:id="@+id/calendarButtonsRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingBottom="12dp">
+
+        <TextView
+            android:id="@+id/calendarButtonNotTaken"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_calendar_button_bg"
+            android:gravity="center"
+            android:paddingHorizontal="10dp"
+            android:text="Not Taken"
+            android:textAllCaps="false"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/calendarButtonTaken"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_calendar_button_bg"
+            android:gravity="center"
+            android:paddingHorizontal="10dp"
+            android:text="Taken"
+            android:textAllCaps="false"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</FrameLayout>
