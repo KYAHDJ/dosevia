@@ -154,9 +154,8 @@ class BillingManager(
                 return@queryProductDetailsAsync
             }
             _lifetimeDetails.value =
-                detailsList
-                    ?.git --versionfilter { it.productId == BillingProducts.LIFETIME_PRODUCT_ID }
-                    ?.firstOrNull()
+                detailsList.productDetailsList
+                    .firstOrNull { it.productId == BillingProducts.LIFETIME_PRODUCT_ID }
         }
 
         val subsParams = QueryProductDetailsParams.newBuilder()
@@ -176,9 +175,8 @@ class BillingManager(
                 return@queryProductDetailsAsync
             }
             _proDetails.value =
-                detailsList
-                    ?.filter { it.productId == BillingProducts.PRO_PRODUCT_ID }
-                    ?.firstOrNull()
+                detailsList.productDetailsList
+                    .firstOrNull { it.productId == BillingProducts.PRO_PRODUCT_ID }
         }
     }
 
