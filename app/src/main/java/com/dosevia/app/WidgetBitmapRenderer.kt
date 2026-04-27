@@ -116,7 +116,7 @@ object WidgetBitmapRenderer {
             textAlign = Paint.Align.CENTER
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
         }
-        canvas.drawText("of $totalPills pills", cx, cy * 1.42f, totalPaint)
+        canvas.drawText("of $totalPills days", cx, cy * 1.42f, totalPaint)
 
         // ── Pill type label (bottom) ──────────────────────────────────────────
         val typePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

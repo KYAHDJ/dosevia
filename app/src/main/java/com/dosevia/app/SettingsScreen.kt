@@ -335,8 +335,8 @@ fun SettingsScreen(
                         SettingsToggleRow(
                             icon     = Icons.Default.NotificationsActive,
                             iconBg   = OrangeAccent,
-                            title    = "Placebo Reminder",
-                            sub      = "Remind me during placebo / low-dose days",
+                            title    = "Pause Day Reminder",
+                            sub      = "Remind me during pause / light days",
                             checked  = settings.placeboReminder,
                             enabled  = masterOn,
                             onChange = { if (masterOn) viewModel.updateSettings(settings.copy(placeboReminder = it)) },
@@ -388,7 +388,7 @@ fun SettingsScreen(
                         // Icon picker
                         val currentIconLabel = ICON_OPTIONS
                             .firstOrNull { it.first == settings.notificationIcon }?.second
-                            ?: "Medication (pill)"
+                            ?: "Daily reminder"
                         Box(modifier = Modifier.alpha(if (userTier.hasPro()) 1f else 0.45f)) {
                             SettingsChevronRow(
                                 icon    = notifIconVector(settings.notificationIcon),

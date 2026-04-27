@@ -91,8 +91,8 @@ fun markTodayNotTakenFromBackground(context: Context) {
         .putLong(KEY_REMIND_DATE_MS, todayMs)
         .commit()
 
-    val title = schedPrefs.getString(KEY_TITLE, "Time to take your pill") ?: "Time to take your pill"
-    val subtitle = schedPrefs.getString(KEY_SUBTITLE, "Don't forget your daily dose") ?: "Don't forget your daily dose"
+    val title = schedPrefs.getString(KEY_TITLE, "Time for your daily check-in") ?: "Time for your daily check-in"
+    val subtitle = schedPrefs.getString(KEY_SUBTITLE, "Don't forget your daily routine") ?: "Don't forget your daily routine"
     val hour = schedPrefs.getInt(KEY_HOUR, 9)
     val minute = schedPrefs.getInt(KEY_MINUTE, 0)
     val vibrationEnabled = schedPrefs.getBoolean(KEY_VIBRATION, true)

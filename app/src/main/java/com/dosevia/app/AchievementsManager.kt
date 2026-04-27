@@ -172,7 +172,7 @@ object AchievementsManager {
         ) = AchievementItem(id, title, description, unlocked, accent)
 
         return listOf(
-            ach("a01", "First Step", "Take your first pill.", stats.totalTaken >= 1, 0xFFF59E0B.toInt()),
+            ach("a01", "First Step", "Complete your first daily check-in.", stats.totalTaken >= 1, 0xFFF59E0B.toInt()),
             ach("a02", "Tiny Streak", "Reach a 3 day streak.", stats.bestStreak >= 3, 0xFFFB7185.toInt()),
             ach("a03", "Strong Start", "Reach a 5 day streak.", stats.bestStreak >= 5, 0xFFEC4899.toInt()),
             ach("a04", "Weekly Glow", "Reach a 7 day streak.", stats.bestStreak >= 7, 0xFF8B5CF6.toInt()),
@@ -186,12 +186,12 @@ object AchievementsManager {
             ach("a12", "Golden Habit", "Reach a 120 day streak.", stats.bestStreak >= 120, 0xFFF97316.toInt()),
             ach("a13", "Half-Year Hero", "Reach a 180 day streak.", stats.bestStreak >= 180, 0xFFEF4444.toInt()),
             ach("a14", "Year of Care", "Reach a 365 day streak.", stats.bestStreak >= 365, 0xFF7C3AED.toInt()),
-            ach("a15", "Ten Taken", "Take 10 pills total.", stats.totalTaken >= 10, 0xFFFB7185.toInt()),
-            ach("a16", "Silver Stack", "Take 25 pills total.", stats.totalTaken >= 25, 0xFFEC4899.toInt()),
-            ach("a17", "Golden Stack", "Take 50 pills total.", stats.totalTaken >= 50, 0xFF8B5CF6.toInt()),
-            ach("a18", "Century Club", "Take 100 pills total.", stats.totalTaken >= 100, 0xFF3B82F6.toInt()),
-            ach("a19", "Daily Devotion", "Take 180 pills total.", stats.totalTaken >= 180, 0xFF14B8A6.toInt()),
-            ach("a20", "Dosevia Legend", "Take 365 pills total.", stats.totalTaken >= 365, 0xFF22C55E.toInt()),
+            ach("a15", "Ten Taken", "Complete 10 check-ins total.", stats.totalTaken >= 10, 0xFFFB7185.toInt()),
+            ach("a16", "Silver Stack", "Complete 25 check-ins total.", stats.totalTaken >= 25, 0xFFEC4899.toInt()),
+            ach("a17", "Golden Stack", "Complete 50 check-ins total.", stats.totalTaken >= 50, 0xFF8B5CF6.toInt()),
+            ach("a18", "Century Club", "Complete 100 check-ins total.", stats.totalTaken >= 100, 0xFF3B82F6.toInt()),
+            ach("a19", "Daily Devotion", "Complete 180 check-ins total.", stats.totalTaken >= 180, 0xFF14B8A6.toInt()),
+            ach("a20", "Dosevia Legend", "Complete 365 check-ins total.", stats.totalTaken >= 365, 0xFF22C55E.toInt()),
             ach("a21", "First Note", "Save your first note.", stats.totalNotes >= 1, 0xFF06B6D4.toInt()),
             ach("a22", "Journal Spark", "Save 5 notes.", stats.totalNotes >= 5, 0xFF0EA5E9.toInt()),
             ach("a23", "Memory Keeper", "Save 10 notes.", stats.totalNotes >= 10, 0xFF6366F1.toInt()),

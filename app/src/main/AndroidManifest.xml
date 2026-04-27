@@ -133,7 +133,7 @@
             android:exported="false">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Medication reminder alarm" />
+                android:value="Daily routine reminder alarm" />
         </service>
 
         <!--

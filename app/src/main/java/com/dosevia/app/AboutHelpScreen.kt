@@ -1,6 +1,8 @@
 package com.dosevia.app
 
 import android.util.Patterns
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -44,7 +46,6 @@ fun AboutHelpScreen(
     var toast by remember { mutableStateOf<String?>(null) }
 
     var showTerms by remember { mutableStateOf(false) }
-    var showPrivacy by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
 
@@ -100,7 +101,7 @@ fun AboutHelpScreen(
                     icon = Icons.Default.Medication,
                     iconTint = headerGradient,
                     title = "Dosevia",
-                    body = "A simple pill tracker with alarms, history, notes, and widgets to help you stay consistent."
+                    body = "A simple daily routine tracker with alerts, history, notes, and widgets to help you stay consistent."
                 )
 
                 Spacer(Modifier.height(16.dp))
@@ -122,8 +123,15 @@ fun AboutHelpScreen(
                         LegalRow(
                             icon = Icons.Default.PrivacyTip,
                             title = "Privacy Policy",
-                            subtitle = "How your data is handled",
-                            onClick = { showPrivacy = true }
+                            subtitle = "Open the public privacy policy page",
+                            onClick = {
+                                context.startActivity(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse("https://sites.google.com/view/doseviaprivacypolicy/home")
+                                    )
+                                )
+                            }
                         )
                     }
                 }
@@ -286,13 +294,6 @@ fun AboutHelpScreen(
             title = LegalContent.termsTitle,
             body = LegalContent.termsText,
             onDismiss = { showTerms = false }
-        )
-    }
-    if (showPrivacy) {
-        LegalTextDialog(
-            title = LegalContent.privacyTitle,
-            body = LegalContent.privacyText,
-            onDismiss = { showPrivacy = false }
         )
     }
 }

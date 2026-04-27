@@ -648,7 +648,7 @@ fun DoseviaApp(activity: MainActivity) {
                     iconTint    = Brush.linearGradient(listOf(Color(0xFFF609BC), Color(0xFFFAB86D))),
                     title       = "Allow Background Activity",
                     body        = "Dosevia needs to be excluded from battery optimisation " +
-                            "so your medication alarm fires reliably — even when the " +
+                            "so your daily alert fires reliably — even when the " +
                             "phone is asleep or the app is closed.\n\n" +
                             "Tap \"Go to Settings\", then select " +
                             "\"Don't optimise\" or \"Unrestricted\" for Dosevia.",
@@ -662,7 +662,7 @@ fun DoseviaApp(activity: MainActivity) {
                     icon        = Icons.Default.BatteryAlert,
                     iconTint    = Brush.linearGradient(listOf(Color(0xFF433BFF), Color(0xFF2F27CE))),
                     title       = "Allow Exact Alarms",
-                    body        = "Dosevia uses exact alarms so your pill reminder is reliable " +
+                    body        = "Dosevia uses exact alarms so your daily reminder is reliable " +
                             "(even in Doze mode).\n\n" +
                             "Tap \"Allow Exact Alarms\" then enable it for Dosevia.",
                     buttonLabel = "Allow Exact Alarms",
@@ -677,7 +677,7 @@ fun DoseviaApp(activity: MainActivity) {
                     title       = "Enable Notifications",
                     body        = "Dosevia needs notification permission to show your " +
                             "alarm on the lock screen and in the notification bar " +
-                            "when it's time to take your pill.\n\n" +
+                            "when it is time for your daily check-in.\n\n" +
                             "Tap \"Enable Notifications\" and allow notifications " +
                             "for Dosevia.",
                     buttonLabel = "Enable Notifications",

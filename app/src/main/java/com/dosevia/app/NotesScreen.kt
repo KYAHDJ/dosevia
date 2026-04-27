@@ -161,7 +161,7 @@ fun NotesScreen(
                         )
                         Text(
                             if (searchQuery.isNotBlank()) "Try a different search term"
-                            else "Tap + to add a note about\nyour pill-taking experience",
+                            else "Tap + to add a note about\nyour daily routine experience",
                             fontSize = subSp,
                             color = Color(0xFF9CA3AF)
                         )

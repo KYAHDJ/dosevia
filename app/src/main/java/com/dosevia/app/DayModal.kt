@@ -131,9 +131,9 @@ fun DayModal(
                             ) {
                                 Text(
                                     text = when {
-                                        dayData.isLowDose -> "Low-Dose Pill"
-                                        dayData.isPlacebo -> "Placebo Pill"
-                                        else -> "Active Pill"
+                                        dayData.isLowDose -> "Light Day"
+                                        dayData.isPlacebo -> "Pause Day"
+                                        else -> "Active Day"
                                     },
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Medium,
@@ -159,12 +159,12 @@ fun DayModal(
                                 Column(horizontalAlignment = Alignment.CenterHorizontally,
                                     modifier = Modifier.fillMaxWidth()) {
                                     Text(
-                                        "🚫 Cannot edit future pills",
+                                        "🚫 Cannot edit future days",
                                         fontWeight = FontWeight.SemiBold,
                                         color = Color(0xFFDC2626)
                                     )
                                     Text(
-                                        "You can only change today's pill or past pills",
+                                        "You can only change today or past days",
                                         fontSize = 12.sp,
                                         color = Color(0xFFDC2626)
                                     )

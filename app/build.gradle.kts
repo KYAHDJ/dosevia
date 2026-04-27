@@ -12,8 +12,8 @@ android {
         applicationId = "com.dosevia.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "1"
+        versionCode = 1002
+        versionName = "1.0.0"
     }
 
     buildTypes {

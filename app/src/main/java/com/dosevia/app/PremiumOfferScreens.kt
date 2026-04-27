@@ -497,14 +497,14 @@ private fun MockMediumWidgetPreviewCard() {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Pill Statistics",
+                text = "Routine Statistics",
                 color = Color(0xFF0B1020),
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 22.sp
             )
 
             MockStatisticBar(
-                label = "Total Pills",
+                label = "Total Days",
                 value = "28",
                 dotColor = Color(0xFFC8C8D4),
                 rowColor = Color(0xFFF8F8FA),

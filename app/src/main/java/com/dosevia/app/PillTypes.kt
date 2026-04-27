@@ -46,10 +46,10 @@ data class ReminderSettings(
     // Vibration
     val vibrationEnabled: Boolean = true,
     // Notification text
-    val notificationTitle: String = "Time to take your pill",
-    val notificationSubtitle: String = "Don't forget your daily dose",
+    val notificationTitle: String = "Time for your daily check-in",
+    val notificationSubtitle: String = "Don't forget your daily routine",
     // Alarm screen centre icon — one of: "medication", "favorite_heart", "alarm", "star", "notifications", "local_pharmacy", "health_and_safety", "ecg_heart", "healing", "medical_services"
-    val notificationIcon: String = "medication",
+    val notificationIcon: String = "favorite_heart",
     // Notification sound — "default" = system alarm, "silent" = no sound,
     //   or an absolute path inside the app's alarm_sounds/ folder
     val notificationSound: String = "default"
@@ -100,9 +100,9 @@ fun getPillConfiguration(pillType: PillType, customConfig: CustomPillConfig? = n
     }
 
 fun getPillTypeLabel(pillType: PillType): String = when (pillType) {
-    PillType.TYPE_21_7    -> "21 Active + 7 Placebo"
-    PillType.TYPE_24_4    -> "24 Active + 4 Placebo"
-    PillType.TYPE_26_2    -> "26 Active + 2 Placebo"
+    PillType.TYPE_21_7    -> "21 Active + 7 Pause"
+    PillType.TYPE_24_4    -> "24 Active + 4 Pause"
+    PillType.TYPE_26_2    -> "26 Active + 2 Pause"
     PillType.TYPE_28_DAY  -> "28-Day Continuous"
     PillType.TYPE_84_7    -> "84+7 (91-day)"
     PillType.TYPE_84_7_LOW-> "84+7 Low-dose"
@@ -121,32 +121,32 @@ data class PillTypeOption(
 )
 
 val pillTypeOptions = listOf(
-    PillTypeOption(PillType.TYPE_21_7, "21 Active + 7 Placebo",
-        "Most common traditional pack. Take hormone pills for 21 days, then placebo for 7 days.",
+    PillTypeOption(PillType.TYPE_21_7, "21 Active + 7 Pause",
+        "Common 28-day cycle. Track 21 active days, then 7 pause days.",
         "Standard Cycle", "Ortho Tri-Cyclen, Apri, Yasmin"),
-    PillTypeOption(PillType.TYPE_24_4, "24 Active + 4 Placebo",
-        "Shorter placebo interval reduces withdrawal symptoms.",
+    PillTypeOption(PillType.TYPE_24_4, "24 Active + 4 Pause",
+        "Shorter pause interval for a compact cycle.",
         "Standard Cycle", "Yaz, Beyaz, Slynd"),
-    PillTypeOption(PillType.TYPE_26_2, "26 Active + 2 Placebo",
-        "Very short placebo break. Minimal withdrawal bleeding.",
+    PillTypeOption(PillType.TYPE_26_2, "26 Active + 2 Pause",
+        "Very short pause break for a compact cycle.",
         "Standard Cycle"),
     PillTypeOption(PillType.TYPE_28_DAY, "28-Day Continuous",
-        "All 28 pills are active. No placebo week, no periods.",
-        "Standard Cycle", "Minipill variants"),
-    PillTypeOption(PillType.TYPE_84_7, "84 Active + 7 Placebo (91-Day)",
+        "All 28 days are active. No pause week.",
+        "Standard Cycle", "Daily routine variants"),
+    PillTypeOption(PillType.TYPE_84_7, "84 Active + 7 Pause (91-Day)",
         "3-month extended cycle. Period only 4 times per year.",
         "Extended Cycle", "Seasonale, Jolessa, Quasense"),
     PillTypeOption(PillType.TYPE_84_7_LOW, "84 Active + 7 Low-Dose (91-Day)",
-        "3-month cycle with low-dose estrogen instead of placebo.",
+        "3-month cycle with light days instead of pause days.",
         "Extended Cycle", "Seasonique, Camrese, LoSeasonique"),
     PillTypeOption(PillType.TYPE_365_DAY, "365-Day Continuous",
-        "Year-round continuous active pills. No placebo, no periods.",
+        "Year-round continuous active days. No pause days.",
         "Extended Cycle", "Lybrel, Amethyst"),
-    PillTypeOption(PillType.TYPE_28_POP, "28-Day Progestin-Only (Minipill)",
-        "All 28 pills contain only progestin. Must take at same time daily.",
+    PillTypeOption(PillType.TYPE_28_POP, "28-Day Daily Routine",
+        "All 28 days are active. Best used at the same time daily.",
         "Progestin-Only", "Nor-QD, Camila, Errin"),
     PillTypeOption(PillType.FLEXIBLE, "Flexible Extended Cycle",
-        "You control cycle length. Take active pills for 24-120 days, then 4-day break.",
+        "You control cycle length. Track active days for 24–120 days, then a 4-day break.",
         "Flexible Regimen"),
     PillTypeOption(PillType.CUSTOM, "Custom Configuration",
         "For special regimens prescribed by your healthcare provider.",

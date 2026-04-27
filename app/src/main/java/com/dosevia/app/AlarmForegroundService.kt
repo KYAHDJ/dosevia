@@ -59,8 +59,8 @@ class AlarmForegroundService : Service() {
         // This prevents overlapping alarm audio when the strict minute reminder fires.
         stopAlarmResources()
 
-        val title    = intent?.getStringExtra(EXTRA_TITLE)    ?: "Time to take your pill"
-        val subtitle = intent?.getStringExtra(EXTRA_SUBTITLE) ?: "Don't forget your daily dose"
+        val title    = intent?.getStringExtra(EXTRA_TITLE)    ?: "Time for your daily check-in"
+        val subtitle = intent?.getStringExtra(EXTRA_SUBTITLE) ?: "Don't forget your daily routine"
 
         val alarmIntent = Intent(this, AlarmActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -249,7 +249,7 @@ class AlarmForegroundService : Service() {
         val channel = NotificationChannel(
             ALARM_CHANNEL_ID, ALARM_CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description          = "Dosevia daily pill alarm"
+            description          = "Dosevia daily routine alert"
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             setBypassDnd(true)
             enableVibration(true)

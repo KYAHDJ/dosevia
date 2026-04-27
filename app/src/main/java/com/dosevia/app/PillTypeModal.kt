@@ -87,7 +87,7 @@ fun PillTypeModal(
                             Spacer(Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    "Select Your Pill Pack Type",
+                                    "Select Your Routine Type",
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = PinkPrimary
@@ -234,7 +234,7 @@ fun PillTypeModal(
                                 .padding(12.dp)
                         ) {
                             Text(
-                                "💡  Medical Accuracy: All pill types are based on actual birth control regimens prescribed worldwide.",
+                                "💡  Routine accuracy: Cycle options are designed to support common daily schedules.",
                                 fontSize = 12.sp,
                                 color = Color(0xFF1E40AF)
                             )
@@ -249,7 +249,7 @@ fun PillTypeModal(
                                 .padding(12.dp)
                         ) {
                             Text(
-                                "⚠️  Important: Always follow your healthcare provider's instructions. If unsure which type you have, check your pill pack or consult your doctor.",
+                                "⚠️  Important: Use the schedule that matches your personal routine. If unsure, consult a qualified professional.",
                                 fontSize = 12.sp,
                                 color = Color(0xFF92400E)
                             )

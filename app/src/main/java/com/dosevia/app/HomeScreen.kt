@@ -122,12 +122,12 @@ fun HomeScreen(
 
     val tutorialSteps = remember {
         listOf(
-            TutorialStep("pillType", "Choose pill type", "Select your blister type so Dosevia tracks correctly."),
+            TutorialStep("pillType", "Choose routine type", "Select your cycle type so Dosevia tracks correctly."),
             TutorialStep("startDate", "Set your start date", "This determines which day you’re on in your blister."),
-            TutorialStep("blister", "Mark pills taken", "Tap a day to mark Taken / Missed / None."),
+            TutorialStep("blister", "Mark days complete", "Tap a day to mark Complete / Missed / None."),
             TutorialStep("reminder", "Daily reminders", "Dosevia will keep alarming until today is marked as taken."),
             TutorialStep("settings", "Settings", "Change reminders, sounds, widgets, sync, and more."),
-            TutorialStep("notes", "Notes", "Save notes after taking your pill."),
+            TutorialStep("notes", "Notes", "Save notes after your daily check-in."),
         )
     }
 
@@ -261,7 +261,7 @@ fun HomeScreen(
 
                         HeaderCard(
                             icon = Icons.Default.Medication,
-                            label = "Pill Type (Tap to change)",
+                            label = "Routine Type (Tap to change)",
                             value = getPillTypeLabel(state.pillType),
                             onClick = { showPillTypeModal = true },
                             modifier = Modifier
@@ -648,7 +648,7 @@ private fun QuickNotePromptCard(
             }
 
             Text(
-                "Want to log how you feel after taking your pill?",
+                "Want to log how you feel after your daily check-in?",
                 fontSize = 12.sp,
                 color = Color(0xFF4B5563)
             )

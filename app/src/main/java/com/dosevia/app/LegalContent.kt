@@ -21,10 +21,10 @@ Welcome to Dosevia.
 By using this app, you agree to these Terms & Conditions.
 
 1) Purpose
-Dosevia is a personal medication tracking app that helps you set reminders, record your history, and keep notes.
+Dosevia is a personal daily routine tracking app that helps you set reminders, record your history, and keep notes.
 
 2) Your Data & Ownership
-• Your medication schedule, history, and notes belong to you.
+• Your daily routine schedule, history, and notes belong to you.
 • Dosevia does not sell your data.
 
 3) Device Storage
@@ -39,11 +39,11 @@ If you sign in with Google and enable backup/sync:
 5) Ads
 Dosevia may show ads via Google AdMob. Ad providers may collect device identifiers and related information to deliver and measure ads, according to their policies.
 
-6) No Medical Advice
-Dosevia does not provide medical advice. Always consult a licensed healthcare professional for medical decisions.
+6) No Professional Advice
+Dosevia provides reminders and tracking only. It does not provide professional advice, diagnosis, or recommendations.
 
 7) Limitation of Liability
-You are responsible for verifying your schedule and reminders. The developer is not liable for missed doses, incorrect entries, or any outcomes from using the app.
+You are responsible for verifying your schedule and reminders. The developer is not liable for missed reminders, incorrect entries, or any outcomes from using the app.
 
 8) Changes
 We may update these terms. Continued use means you accept the updated terms.
@@ -58,19 +58,19 @@ What we collect
 • Dosevia itself does not ask you to enter personal identity data to use the core features.
 • If you sign in with Google, Google provides basic account information required for sign-in.
 
-How your medication data is stored
+How your routine data is stored
 • On your device: your schedules, history, and notes are stored on this device.
 • If you enable backup/sync: Dosevia stores a backup in your Google Drive.
 
 How we use your data
 • Your data is used only to provide app features such as saving, restoring, and syncing.
-• We do not sell your medication data.
+• We do not sell your routine data.
 
 Ads (AdMob)
 • When ads are enabled, Google AdMob may collect device identifiers and other information for ad delivery, measurement, and fraud prevention.
 
 Data sharing
-• Dosevia does not share your medication data with third parties.
+• Dosevia does not share your routine data with third parties.
 • Ads are provided by Google; their SDK may process device information as described in Google’s policies.
 
 Security

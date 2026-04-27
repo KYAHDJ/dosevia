@@ -33,12 +33,12 @@ import java.util.Calendar
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const val ALARM_CHANNEL_ID   = "dosevia_alarm_channel"
-const val ALARM_CHANNEL_NAME = "Pill Alarm"
+const val ALARM_CHANNEL_NAME = "Daily Alarm"
 const val ALARM_NOTIF_ID     = 2001
 private const val ALARM_REQUEST_CODE = 3001
 
 const val REMINDER_CHANNEL_ID   = "dosevia_reminder_channel"
-const val REMINDER_CHANNEL_NAME = "Pill Reminders"
+const val REMINDER_CHANNEL_NAME = "Daily Reminders"
 
 private const val PRE_REMINDER_REQUEST_CODE    = 3002
 private const val OVERDUE_TICK_REQUEST_CODE    = 3003
@@ -59,8 +59,8 @@ private const val STATUS_PREFS_NAME = "dosevia_status"
 
 class PillAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val title    = intent.getStringExtra(EXTRA_TITLE)    ?: "Time to take your pill"
-        val subtitle = intent.getStringExtra(EXTRA_SUBTITLE) ?: "Don't forget your daily dose"
+        val title    = intent.getStringExtra(EXTRA_TITLE)    ?: "Time for your daily check-in"
+        val subtitle = intent.getStringExtra(EXTRA_SUBTITLE) ?: "Don't forget your daily routine"
 
         if (!shouldFireAlarmNow(context)) {
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -141,8 +141,8 @@ class PreReminderReceiver : BroadcastReceiver() {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val n = NotificationCompat.Builder(context, REMINDER_CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_popup_reminder)
-            .setContentTitle("Pill time soon")
-            .setContentText("Your pill is scheduled at $timeStr")
+            .setContentTitle("Reminder time soon")
+            .setContentText("Your reminder is scheduled at $timeStr")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setAutoCancel(true)
@@ -191,8 +191,8 @@ class OverdueTickReceiver : BroadcastReceiver() {
             return
         }
 
-        val title    = prefs.getString(KEY_TITLE, "Time to take your pill") ?: "Time to take your pill"
-        val subtitle = prefs.getString(KEY_SUBTITLE, "Don't forget your daily dose") ?: "Don't forget your daily dose"
+        val title    = prefs.getString(KEY_TITLE, "Time for your daily check-in") ?: "Time for your daily check-in"
+        val subtitle = prefs.getString(KEY_SUBTITLE, "Don't forget your daily routine") ?: "Don't forget your daily routine"
         val serviceIntent = Intent(context, AlarmForegroundService::class.java).apply {
             putExtra(EXTRA_TITLE, title)
             putExtra(EXTRA_SUBTITLE, subtitle)
@@ -230,8 +230,8 @@ class BootReceiver : BroadcastReceiver() {
             context           = context,
             hour              = prefs.getInt(KEY_HOUR,    9),
             minute            = prefs.getInt(KEY_MINUTE,  0),
-            title             = prefs.getString(KEY_TITLE,    "Time to take your pill") ?: "Time to take your pill",
-            subtitle          = prefs.getString(KEY_SUBTITLE, "Don't forget your daily dose") ?: "Don't forget your daily dose",
+            title             = prefs.getString(KEY_TITLE,    "Time for your daily check-in") ?: "Time for your daily check-in",
+            subtitle          = prefs.getString(KEY_SUBTITLE, "Don't forget your daily routine") ?: "Don't forget your daily routine",
             vibrationEnabled  = prefs.getBoolean(KEY_VIBRATION, true),
             notificationIcon  = prefs.getString(KEY_NOTIF_ICON,  "medication") ?: "medication",
             notificationSound = prefs.getString(KEY_NOTIF_SOUND, "default")   ?: "default"
@@ -295,7 +295,7 @@ fun ensureNotificationChannel(context: Context) {
                 ALARM_CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description          = "Daily pill alarm notification"
+                description          = "Daily routine alert notification"
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 enableVibration(true)
                 enableLights(true)

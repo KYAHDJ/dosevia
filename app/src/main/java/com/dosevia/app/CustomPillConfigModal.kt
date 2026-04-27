@@ -78,7 +78,7 @@ fun CustomPillConfigModal(
                         Spacer(Modifier.width(12.dp))
                         Column {
                             Text(
-                                "Custom Pill Configuration",
+                                "Custom Routine Configuration",
                                 fontSize = if (isTablet) 18.sp else 16.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = PinkPrimary
@@ -91,10 +91,10 @@ fun CustomPillConfigModal(
                         }
                     }
 
-                    // Active Pills row
+                    // Active Days row
                     PillCountRow(
-                        label = "Active Pills",
-                        subtitle = "Hormone-containing pills",
+                        label = "Active Days",
+                        subtitle = "Main routine days",
                         value = activePills,
                         valueColor = Brush.linearGradient(listOf(PinkPrimary, OrangeAccent)),
                         min = 1,
@@ -104,9 +104,9 @@ fun CustomPillConfigModal(
                         onIncrement = { if (activePills < 365) activePills++ }
                     )
 
-                    // Placebo Pills row
+                    // Pause Days row
                     PillCountRow(
-                        label = "Placebo Pills",
+                        label = "Pause Days",
                         subtitle = "No hormones (period week)",
                         value = placeboPills,
                         valueColor = Brush.linearGradient(listOf(Color(0xFF9CA3AF), Color(0xFF6B7280))),
@@ -117,10 +117,10 @@ fun CustomPillConfigModal(
                         onIncrement = { if (placeboPills < 28) placeboPills++ }
                     )
 
-                    // Low-Dose Pills row
+                    // Light Days row
                     PillCountRow(
-                        label = "Low-Dose Pills",
-                        subtitle = "Low hormone (instead of placebo)",
+                        label = "Light Days",
+                        subtitle = "Light routine days",
                         value = lowDosePills,
                         valueColor = Brush.linearGradient(listOf(LowDoseAmber, Color(0xFFF59E0B))),
                         min = 0,
@@ -147,9 +147,9 @@ fun CustomPillConfigModal(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column {
-                                Text("Total Pills:", fontWeight = FontWeight.SemiBold,
+                                Text("Total Days:", fontWeight = FontWeight.SemiBold,
                                     fontSize = 15.sp, color = Color(0xFF111827))
-                                Text("$activePills active + $placeboPills placebo + $lowDosePills low-dose",
+                                Text("$activePills active + $placeboPills pause + $lowDosePills light",
                                     fontSize = 12.sp, color = Color(0xFF6B7280))
                             }
                             Text(
@@ -171,7 +171,7 @@ fun CustomPillConfigModal(
                             .padding(12.dp)
                     ) {
                         Text(
-                            "Tip: Most packs are 21–28 pills. Extended-cycle packs can be longer.",
+                            "Tip: Most routines are 21–28 days. Extended cycles can be longer.",
                             fontSize = 12.sp,
                             color = Color(0xFF1E40AF)
                         )

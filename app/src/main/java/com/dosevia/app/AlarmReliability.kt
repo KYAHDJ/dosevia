@@ -215,8 +215,8 @@ class ExactAlarmPermissionReceiver : BroadcastReceiver() {
             context = context,
             hour = prefs.getInt(KEY_HOUR, 9),
             minute = prefs.getInt(KEY_MINUTE, 0),
-            title = prefs.getString(KEY_TITLE, "Time to take your pill") ?: "Time to take your pill",
-            subtitle = prefs.getString(KEY_SUBTITLE, "Don't forget your daily dose") ?: "Don't forget your daily dose",
+            title = prefs.getString(KEY_TITLE, "Time for your daily check-in") ?: "Time for your daily check-in",
+            subtitle = prefs.getString(KEY_SUBTITLE, "Don't forget your daily routine") ?: "Don't forget your daily routine",
             vibrationEnabled = prefs.getBoolean(KEY_VIBRATION, true),
             notificationIcon = prefs.getString(KEY_NOTIF_ICON, "medication") ?: "medication",
             notificationSound = prefs.getString(KEY_NOTIF_SOUND, "default") ?: "default"

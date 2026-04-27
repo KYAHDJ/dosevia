@@ -69,8 +69,8 @@ class AlarmActivity : ComponentActivity() {
             WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
         )
 
-        val title    = intent.getStringExtra(EXTRA_TITLE)    ?: "Time to take your pill"
-        val subtitle = intent.getStringExtra(EXTRA_SUBTITLE) ?: "Don't forget your daily dose"
+        val title    = intent.getStringExtra(EXTRA_TITLE)    ?: "Time for your daily check-in"
+        val subtitle = intent.getStringExtra(EXTRA_SUBTITLE) ?: "Don't forget your daily routine"
         val iconPref = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .getString(KEY_NOTIF_ICON, "medication") ?: "medication"
 
@@ -98,8 +98,8 @@ class AlarmActivity : ComponentActivity() {
         val snoozeTimeMs = System.currentTimeMillis() + 5 * 60 * 1000L
 
         val prefs    = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val title    = prefs.getString(KEY_TITLE,    "Time to take your pill")    ?: "Time to take your pill"
-        val subtitle = prefs.getString(KEY_SUBTITLE, "Don't forget your daily dose") ?: "Don't forget your daily dose"
+        val title    = prefs.getString(KEY_TITLE,    "Time for your daily check-in")    ?: "Time for your daily check-in"
+        val subtitle = prefs.getString(KEY_SUBTITLE, "Don't forget your daily routine") ?: "Don't forget your daily routine"
 
         scheduleOneShotAlarm(this, snoozeTimeMs, title, subtitle)
         finish()
@@ -124,17 +124,13 @@ fun notifIconVector(key: String): ImageVector = when (key) {
     "healing"           -> Icons.Default.Healing
     "medical_services"  -> Icons.Default.MedicalServices
     "water_drop"        -> Icons.Default.WaterDrop
-    else                -> Icons.Default.Medication   // "medication" (default)
+    else                -> Icons.Default.Favorite   // default
 }
 
 /** All available alarm-screen icon options exposed to SettingsScreen */
 val ICON_OPTIONS: List<Pair<String, String>> = listOf(
-    "medication"        to "Medication (pill)",
-    "local_pharmacy"    to "Pharmacy bag",
-    "medical_services"  to "Medical Services",
-    "health_and_safety" to "Health & Safety",
-    "healing"           to "Healing",
-    "favorite_heart"    to "Heart",
+    "medication"        to "Heart Reminder",
+        "favorite_heart"    to "Heart",
     "water_drop"        to "Water Drop",
     "alarm"             to "Alarm Clock",
     "star"              to "Star",

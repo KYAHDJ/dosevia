@@ -48,7 +48,7 @@ object WidgetMediumBitmapRenderer {
             textAlign = Paint.Align.LEFT
         }
         val titleY = pad + titlePaint.textSize
-        canvas.drawText("Pill Statistics", pad, titleY, titlePaint)
+        canvas.drawText("Routine Statistics", pad, titleY, titlePaint)
 
         if (locked) {
             // Locked overlay (FREE tier)
@@ -87,7 +87,7 @@ object WidgetMediumBitmapRenderer {
 
         drawRow(canvas, w, rowTop + rowH * 0 + rowGap, rowH - rowGap * 2, pad, corner * 0.5f,
             Color.parseColor("#FFFFFF"), Color.parseColor("#9E9EAE"),
-            "Total Pills", "$totalPills", theme.textPrimary, theme.textSecondary)
+            "Total Days", "$totalPills", theme.textPrimary, theme.textSecondary)
 
         drawRow(canvas, w, rowTop + rowH * 1 + rowGap, rowH - rowGap * 2, pad, corner * 0.5f,
             Color.parseColor("#EDFFF4"), theme.accent1,
